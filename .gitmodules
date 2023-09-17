@@ -1,0 +1,3 @@
+[submodule "Tyranno_grpc"]
+	path = Tyranno_grpc
+	url = git@github.com:tosaken1116/Tyranno_grpc.git
