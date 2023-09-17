@@ -1,3 +1,0 @@
-[submodule "proto"]
-	path = proto
-	url = git@github.com:tosaken1116/Tyranno_grpc.git
