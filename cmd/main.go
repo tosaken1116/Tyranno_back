@@ -94,5 +94,6 @@ func main() {
 		Debug:          config.ENV == "develop",
 	})
 
-	http.ListenAndServe(":8080", c.Handler(h2c.NewHandler(mux, &http2.Server{})))
+	portStr := ":" + config.PORT
+	http.ListenAndServe(portStr, c.Handler(h2c.NewHandler(mux, &http2.Server{})))
 }
