@@ -16,14 +16,16 @@ services:
       retries: 30
 
   api:
-    build: .
+    build:
+      args:
+        - target=dev
     container_name: nnyd-backend
     hostname: nnyd-backend
     working_dir: /opt/nnyd
     volumes:
       - .:/opt/nnyd
     ports:
-      - "8080:8080"
+      - ${PORT:-8080}:${PORT:-8080}
     env_file:
       - .env
     depends_on:
