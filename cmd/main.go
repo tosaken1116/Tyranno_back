@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"nnyd-back/config"
+	"nnyd-back/db"
 	"nnyd-back/pb/schemas/protos"
 	"nnyd-back/pb/schemas/protos/protosconnect"
 
@@ -24,16 +26,29 @@ func (s *UserServer) CreateUser(ctx context.Context, req *connect.Request[protos
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("name and icon is required."))
 	}
 
-	responseUser := &protos.User{
-		Id:   "dummy",
-		Name: req.Msg.GetName(),
-		Icon: req.Msg.GetIcon(),
+	conn := db.GetDB()
+
+	u := db.Users{
+		Name: req.Msg.Name,
+		Icon: req.Msg.Icon,
 	}
-	userResp := &protos.UserResponse{
-		User: responseUser,
+
+	if err := conn.Create(&u).Error; err == nil {
+		responseUser := &protos.User{
+			Id:   "dummy",
+			Name: req.Msg.GetName(),
+			Icon: req.Msg.GetIcon(),
+		}
+		userResp := &protos.UserResponse{
+			User: responseUser,
+		}
+		resp := connect.NewResponse(userResp)
+		return resp, nil
+	} else {
+		resp := connect.NewError(connect.CodeInternal, err)
+		log.Fatal(err)
+		return nil, resp
 	}
-	resp := connect.NewResponse(userResp)
-	return resp, nil
 }
 
 // リフレクション設定
@@ -60,11 +75,17 @@ func newInterCeptors() connect.Option {
 }
 
 func main() {
+	config.LoadConfig()
 	userServer := &UserServer{}
+
+	db.Init()
+	db.AutoMigration()
 
 	mux := newServeMuxWithReflection()
 	interceptor := newInterCeptors()
 	path, handler := protosconnect.NewUserServiceHandler(userServer, interceptor)
 	mux.Handle(path, handler)
 	http.ListenAndServe(":8080", h2c.NewHandler(mux, &http2.Server{}))
+
+	db.Close()
 }
