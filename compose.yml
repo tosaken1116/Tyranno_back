@@ -1,0 +1,29 @@
+services:
+  db:
+    image: postgres:13.3-alpine
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./data:/db/conf/
+    env_file:
+      - .env
+    healthcheck:
+      test: [ "CMD", "pg_isready" ]
+      interval: 1s
+      timeout: 3s
+      retries: 30
+
+  api:
+    build: .
+    working_dir: /opt/nnyd
+    volumes:
+      - .:/opt/nnyd
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db-data: null

@@ -1,7 +1,18 @@
 {
   "cSpell.words": [
+    "bufbuild",
+    "extendee",
+    "grpcreflect",
+    "gzipped",
+    "Idxs",
     "nnyd",
-    "proto"
+    "proto",
+    "protobuf",
+    "protoc",
+    "protoimpl",
+    "protoreflect",
+    "protosconnect",
+    "Tyranno"
   ],
   "files.insertFinalNewline": true
 }
