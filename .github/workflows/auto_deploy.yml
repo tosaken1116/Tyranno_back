@@ -35,7 +35,7 @@ jobs:
         run: gcloud auth configure-docker
 
       - name: Build Docker image
-        run: docker build -t asia.gcr.io/$PROJECT_ID/$SERVICE_NAME:${{ github.sha }} .
+        run: docker build -t asia.gcr.io/$PROJECT_ID/$SERVICE_NAME:${{ github.sha }} --target prod .
 
       - name: Push Docker Image
         run: docker push asia.gcr.io/$PROJECT_ID/$SERVICE_NAME:${{ github.sha }}
@@ -47,4 +47,5 @@ jobs:
             --image=asia.gcr.io/$PROJECT_ID/$SERVICE_NAME:${{ github.sha }} \
             --region=$REGION \
             --service-account=github-actions@$PROJECT_ID.iam.gserviceaccount.com \
-            --allow-unauthenticated
+            --allow-unauthenticated \
+            --use-http2

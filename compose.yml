@@ -13,7 +13,9 @@ services:
       retries: 30
 
   api:
-    build: .
+    build:
+      args:
+        - target=dev
     working_dir: /opt/nnyd
     volumes:
       - .:/opt/nnyd
