@@ -16,7 +16,7 @@ import (
 
 type UserServer struct{}
 
-func (s *UserServer) User(ctx context.Context, req *connect.Request[protos.UserRequest]) (*connect.Response[protos.UserResponse], error) {
+func (s *UserServer) CreateUser(ctx context.Context, req *connect.Request[protos.UserRequest]) (*connect.Response[protos.UserResponse], error) {
 	log.Println("Request headers: ", req.Header())
 
 	if req.Msg.Name == "" || req.Msg.Icon == "" {

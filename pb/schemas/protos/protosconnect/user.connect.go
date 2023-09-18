@@ -33,13 +33,13 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
-	// UserServiceUserProcedure is the fully-qualified name of the UserService's User RPC.
-	UserServiceUserProcedure = "/nnyd.user.UserService/User"
+	// UserServiceCreateUserProcedure is the fully-qualified name of the UserService's CreateUser RPC.
+	UserServiceCreateUserProcedure = "/nnyd.user.UserService/CreateUser"
 )
 
 // UserServiceClient is a client for the nnyd.user.UserService service.
 type UserServiceClient interface {
-	User(context.Context, *connect_go.Request[protos.UserRequest]) (*connect_go.Response[protos.UserResponse], error)
+	CreateUser(context.Context, *connect_go.Request[protos.UserRequest]) (*connect_go.Response[protos.UserResponse], error)
 }
 
 // NewUserServiceClient constructs a client for the nnyd.user.UserService service. By default, it
@@ -52,9 +52,9 @@ type UserServiceClient interface {
 func NewUserServiceClient(httpClient connect_go.HTTPClient, baseURL string, opts ...connect_go.ClientOption) UserServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
 	return &userServiceClient{
-		user: connect_go.NewClient[protos.UserRequest, protos.UserResponse](
+		createUser: connect_go.NewClient[protos.UserRequest, protos.UserResponse](
 			httpClient,
-			baseURL+UserServiceUserProcedure,
+			baseURL+UserServiceCreateUserProcedure,
 			opts...,
 		),
 	}
@@ -62,17 +62,17 @@ func NewUserServiceClient(httpClient connect_go.HTTPClient, baseURL string, opts
 
 // userServiceClient implements UserServiceClient.
 type userServiceClient struct {
-	user *connect_go.Client[protos.UserRequest, protos.UserResponse]
+	createUser *connect_go.Client[protos.UserRequest, protos.UserResponse]
 }
 
-// User calls nnyd.user.UserService.User.
-func (c *userServiceClient) User(ctx context.Context, req *connect_go.Request[protos.UserRequest]) (*connect_go.Response[protos.UserResponse], error) {
-	return c.user.CallUnary(ctx, req)
+// CreateUser calls nnyd.user.UserService.CreateUser.
+func (c *userServiceClient) CreateUser(ctx context.Context, req *connect_go.Request[protos.UserRequest]) (*connect_go.Response[protos.UserResponse], error) {
+	return c.createUser.CallUnary(ctx, req)
 }
 
 // UserServiceHandler is an implementation of the nnyd.user.UserService service.
 type UserServiceHandler interface {
-	User(context.Context, *connect_go.Request[protos.UserRequest]) (*connect_go.Response[protos.UserResponse], error)
+	CreateUser(context.Context, *connect_go.Request[protos.UserRequest]) (*connect_go.Response[protos.UserResponse], error)
 }
 
 // NewUserServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -81,15 +81,15 @@ type UserServiceHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewUserServiceHandler(svc UserServiceHandler, opts ...connect_go.HandlerOption) (string, http.Handler) {
-	userServiceUserHandler := connect_go.NewUnaryHandler(
-		UserServiceUserProcedure,
-		svc.User,
+	userServiceCreateUserHandler := connect_go.NewUnaryHandler(
+		UserServiceCreateUserProcedure,
+		svc.CreateUser,
 		opts...,
 	)
 	return "/nnyd.user.UserService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
-		case UserServiceUserProcedure:
-			userServiceUserHandler.ServeHTTP(w, r)
+		case UserServiceCreateUserProcedure:
+			userServiceCreateUserHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -99,6 +99,6 @@ func NewUserServiceHandler(svc UserServiceHandler, opts ...connect_go.HandlerOpt
 // UnimplementedUserServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedUserServiceHandler struct{}
 
-func (UnimplementedUserServiceHandler) User(context.Context, *connect_go.Request[protos.UserRequest]) (*connect_go.Response[protos.UserResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("nnyd.user.UserService.User is not implemented"))
+func (UnimplementedUserServiceHandler) CreateUser(context.Context, *connect_go.Request[protos.UserRequest]) (*connect_go.Response[protos.UserResponse], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("nnyd.user.UserService.CreateUser is not implemented"))
 }
