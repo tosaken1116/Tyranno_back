@@ -33,22 +33,22 @@ func (s *UserServer) CreateUser(ctx context.Context, req *connect.Request[protos
 		Icon: req.Msg.Icon,
 	}
 
-	if err := conn.Create(&u).Error; err == nil {
-		responseUser := &protos.User{
-			Id:   "dummy",
-			Name: req.Msg.GetName(),
-			Icon: req.Msg.GetIcon(),
-		}
-		userResp := &protos.UserResponse{
-			User: responseUser,
-		}
-		resp := connect.NewResponse(userResp)
-		return resp, nil
-	} else {
+	if err := conn.Create(&u).Error; err != nil {
 		resp := connect.NewError(connect.CodeInternal, err)
 		log.Fatal(err)
 		return nil, resp
 	}
+
+	responseUser := &protos.User{
+		Id:   "dummy",
+		Name: req.Msg.GetName(),
+		Icon: req.Msg.GetIcon(),
+	}
+	userResp := &protos.UserResponse{
+		User: responseUser,
+	}
+	resp := connect.NewResponse(userResp)
+	return resp, nil
 }
 
 // リフレクション設定
@@ -79,6 +79,7 @@ func main() {
 	userServer := &UserServer{}
 
 	db.Init()
+	defer db.Close()
 	db.AutoMigration()
 
 	mux := newServeMuxWithReflection()
@@ -86,6 +87,4 @@ func main() {
 	path, handler := protosconnect.NewUserServiceHandler(userServer, interceptor)
 	mux.Handle(path, handler)
 	http.ListenAndServe(":8080", h2c.NewHandler(mux, &http2.Server{}))
-
-	db.Close()
 }
