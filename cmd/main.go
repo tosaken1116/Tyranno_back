@@ -12,6 +12,7 @@ import (
 
 	"github.com/bufbuild/connect-go"
 	grpcreflect "github.com/bufbuild/connect-grpcreflect-go"
+	"github.com/rs/cors"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 )
@@ -86,5 +87,12 @@ func main() {
 	interceptor := newInterCeptors()
 	path, handler := protosconnect.NewUserServiceHandler(userServer, interceptor)
 	mux.Handle(path, handler)
-	http.ListenAndServe(":8080", h2c.NewHandler(mux, &http2.Server{}))
+
+	// cross settings
+	c := cors.New(cors.Options{
+		AllowedOrigins: []string{"*"},
+		Debug:          config.ENV == "develop",
+	})
+
+	http.ListenAndServe(":8080", c.Handler(h2c.NewHandler(mux, &http2.Server{})))
 }
