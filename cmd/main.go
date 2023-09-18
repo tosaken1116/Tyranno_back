@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"nnyd-back/config"
+	"nnyd-back/db"
 	"nnyd-back/pb/schemas/protos"
 	"nnyd-back/pb/schemas/protos/protosconnect"
 
@@ -22,6 +24,19 @@ func (s *UserServer) CreateUser(ctx context.Context, req *connect.Request[protos
 	if req.Msg.Name == "" || req.Msg.Icon == "" {
 		// エラーにステータスコードを追加
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("name and icon is required."))
+	}
+
+	conn := db.GetDB()
+
+	u := db.Users{
+		Name: req.Msg.Name,
+		Icon: req.Msg.Icon,
+	}
+
+	if err := conn.Create(&u).Error; err != nil {
+		resp := connect.NewError(connect.CodeInternal, err)
+		log.Fatal(err)
+		return nil, resp
 	}
 
 	responseUser := &protos.User{
@@ -60,7 +75,12 @@ func newInterCeptors() connect.Option {
 }
 
 func main() {
+	config.LoadConfig()
 	userServer := &UserServer{}
+
+	db.Init()
+	defer db.Close()
+	db.AutoMigration()
 
 	mux := newServeMuxWithReflection()
 	interceptor := newInterCeptors()
