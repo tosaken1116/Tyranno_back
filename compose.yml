@@ -13,8 +13,7 @@ services:
       retries: 30
 
   api:
-    image: golang:1.21.1
-    entrypoint: "go run cmd/main.go"
+    build: .
     working_dir: /opt/nnyd
     volumes:
       - .:/opt/nnyd
