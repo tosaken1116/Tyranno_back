@@ -8,6 +8,8 @@ CMD ["air", "-c", ".air.toml"]
 
 FROM golang:1.21.1-alpine AS prod
 
+ENV ENV "production"
+
 RUN mkdir -p /opt/nnyd
 
 COPY . /opt/nnyd
