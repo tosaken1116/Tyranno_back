@@ -14,10 +14,12 @@ services:
 
   api:
     image: golang:1.21.1
+    entrypoint: "go run cmd/main.go"
+    working_dir: /opt/nnyd
     volumes:
       - .:/opt/nnyd
     ports:
-      - "8000:8000"
+      - "8080:8080"
     env_file:
       - .env
     depends_on:
