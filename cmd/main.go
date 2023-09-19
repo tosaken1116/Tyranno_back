@@ -5,8 +5,6 @@ import (
 	"net/http"
 	"nnyd-back/config"
 	"nnyd-back/db"
-	"nnyd-back/pb/schemas/protos/v1/protosv1connect"
-	"nnyd-back/service"
 
 	"connectrpc.com/connect"
 	"connectrpc.com/grpcreflect"
@@ -46,9 +44,9 @@ func main() {
 	db.AutoMigration()
 
 	mux := newServeMuxWithReflection()
-	interceptor := newInterCeptors()
-	path, handler := protosv1connect.NewUserServiceHandler(&service.UserServer{}, interceptor)
-	mux.Handle(path, handler)
+	// interceptor := newInterCeptors()
+	// mux.Handle(protosv1connect.NewUserServiceHandler(&service.UserServer{}, interceptor))
+	// mux.Handle(protosv1connect.NewPostServiceHandler(&service.PostServer{}, interceptor))
 
 	portStr := ":" + config.PORT
 	http.ListenAndServe(portStr, cors.AllowAll().Handler(h2c.NewHandler(mux, &http2.Server{})))
