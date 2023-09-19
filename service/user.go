@@ -62,11 +62,20 @@ func (us *UserServer) UpdateUser(ctx context.Context, req *connect.Request[proto
 }
 
 func (us *UserServer) DeleteUser(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[protosv1.DeleteUserResponse], error) {
-	// mock
-	resp := &protosv1.DeleteUserResponse{
-		Status: true,
+	user_id := ctx.Value("user_id")
+
+	if user_id == "" {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("verifying failed"))
 	}
-	return connect.NewResponse(resp), nil
+
+	conn := db.GetDB()
+	uc := &controller.UserController{}
+	resultResp, err := uc.DeleteUser(conn, user_id.(string))
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("db error"))
+	}
+
+	return connect.NewResponse(resultResp), nil
 }
 
 func (us *UserServer) GetUser(ctx context.Context, req *connect.Request[protosv1.GetUserRequest]) (*connect.Response[protosv1.GetUserResponse], error) {
@@ -86,9 +95,16 @@ func (us *UserServer) GetUsers(ctx context.Context, req *connect.Request[emptypb
 }
 
 func (us *UserServer) CheckDisplayName(ctx context.Context, req *connect.Request[protosv1.CheckDisplayNameRequest]) (*connect.Response[protosv1.CheckDisplayNameResponse], error) {
-	// mock
-	resp := &protosv1.CheckDisplayNameResponse{
-		Status: true,
+	if req.Msg.CheckText == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("check_test is required"))
 	}
-	return connect.NewResponse(resp), nil
+
+	conn := db.GetDB()
+	uc := &controller.UserController{}
+	resultResp, err := uc.CheckDisplayId(conn, req.Msg.CheckText)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("db error"))
+	}
+
+	return connect.NewResponse(resultResp), nil
 }

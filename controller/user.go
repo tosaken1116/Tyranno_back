@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"errors"
 	"log"
 	"nnyd-back/db"
 	protosv1 "nnyd-back/pb/schemas/protos/v1"
@@ -66,4 +67,41 @@ func (uc *UserController) UpdateUser(conn *gorm.DB, id string, msg *protosv1.Upd
 		},
 	}
 	return userResp, nil
+}
+
+func (uc *UserController) DeleteUser(conn *gorm.DB, id string) (*protosv1.DeleteUserResponse, error) {
+	u := db.Users{}
+
+	if err := conn.First(&u, "id = ?", id).Error; err != nil {
+		log.Println(err)
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
+	if err := conn.Delete(&u).Error; err != nil {
+		log.Println(err)
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
+	return &protosv1.DeleteUserResponse{
+		Status: true,
+	}, nil
+}
+
+func (uc *UserController) CheckDisplayId(conn *gorm.DB, display_id string) (*protosv1.CheckDisplayNameResponse, error) {
+	u := db.Users{}
+
+	if err := conn.First(&u, "display_id = ?", display_id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return &protosv1.CheckDisplayNameResponse{
+				IsNotExist: false,
+			}, nil
+		} else {
+			log.Println(err)
+			return nil, connect.NewError(connect.CodeInternal, err)
+		}
+	}
+
+	return &protosv1.CheckDisplayNameResponse{
+		IsNotExist: true,
+	}, nil
 }

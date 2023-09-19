@@ -37,7 +37,7 @@ type Posts struct {
 	PublishedAt string    `json:"published_at"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
-	User        Users     `gorm:"foreignKey:UserID"`
+	User        Users     `gorm:"foreignKey:UserID constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	ReplyAtPost *Posts    `gorm:"foreignKey:ReplyAt"`
 }
 
