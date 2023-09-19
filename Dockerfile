@@ -8,11 +8,10 @@ CMD ["air", "-c", ".air.toml"]
 
 FROM golang:1.21.1-alpine AS prod
 
-ENV ENV "production"
-
 RUN mkdir -p /opt/nnyd
 
 COPY . /opt/nnyd
+RUN cat .env.sample | sed -e 's/ENV=.*/ENV=production/g' | sed 's/PORT=.*//g' > .env
 
 WORKDIR /opt/nnyd
 
