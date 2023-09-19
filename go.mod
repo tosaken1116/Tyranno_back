@@ -5,6 +5,7 @@ go 1.21.1
 require (
 	connectrpc.com/connect v1.11.1
 	connectrpc.com/grpcreflect v1.2.0
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/google/uuid v1.3.1
 	github.com/joho/godotenv v1.5.1
 	github.com/pquerna/otp v1.4.0

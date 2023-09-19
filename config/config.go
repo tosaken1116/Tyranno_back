@@ -15,6 +15,7 @@ var (
 	ENV               string
 	PORT              string
 	APP_NAME          string
+	JST_SECRET_KEY    string
 )
 
 func LoadConfig() {
@@ -28,4 +29,5 @@ func LoadConfig() {
 	ENV = os.Getenv("ENV")
 	PORT = os.Getenv("PORT")
 	APP_NAME = os.Getenv("APP_NAME")
+	JST_SECRET_KEY = os.Getenv("JST_SECRET_KEY")
 }

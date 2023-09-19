@@ -4,11 +4,14 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"nnyd-back/config"
 	"nnyd-back/controller"
 	"nnyd-back/db"
 	protosv1 "nnyd-back/pb/schemas/protos/v1"
+	"time"
 
 	"connectrpc.com/connect"
+	"github.com/dgrijalva/jwt-go"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -34,9 +37,29 @@ func (us *UserServer) CreateUser(ctx context.Context, req *connect.Request[proto
 }
 
 func (us *UserServer) Signin(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[protosv1.SigninResponse], error) {
-	// mock
+	firebase_id := ctx.Value("firebase_id")
+
+	conn := db.GetDB()
+	uc := &controller.UserController{}
+	user_id, err := uc.CheckVerifyTotp(conn, firebase_id.(string))
+	if err != nil {
+		return nil, err
+	}
+
+	claims := jwt.MapClaims{
+		"user_id": user_id,
+		"exp":     time.Now().Add(30 * time.Minute).Unix(),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	accessToken, err := token.SignedString([]byte(config.JST_SECRET_KEY))
+	if err != nil {
+		return nil, err
+	}
+
 	resp := &protosv1.SigninResponse{
-		Token: "",
+		Token: accessToken,
 	}
 	return connect.NewResponse(resp), nil
 }
