@@ -1,6 +1,7 @@
 package db
 
 import (
+	protosv1 "nnyd-back/pb/schemas/protos/v1"
 	"time"
 
 	"github.com/google/uuid"
@@ -30,6 +31,17 @@ type Users struct {
 	OtpUrl      string `json:"otp_url"`
 	OtpEnabled  bool   `gorm:"not null default:false" json:"otp_enabled"`
 	OtpVerified bool   `gorm:"not null default:false" json:"otp_verified"`
+}
+
+func (u *Users) ToProtosModel() *protosv1.User {
+	return &protosv1.User{
+		DisplayId: u.DisplayId,
+		Name:      u.Name,
+		Icon:      u.Icon,
+		Profile:   u.Profile,
+		CreatedAt: u.CreatedAt.Format(time.RFC3339Nano),
+		UpdatedAt: u.UpdatedAt.Format(time.RFC3339Nano),
+	}
 }
 
 type Posts struct {

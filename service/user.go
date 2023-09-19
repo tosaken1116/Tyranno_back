@@ -79,19 +79,25 @@ func (us *UserServer) DeleteUser(ctx context.Context, req *connect.Request[empty
 }
 
 func (us *UserServer) GetUser(ctx context.Context, req *connect.Request[protosv1.GetUserRequest]) (*connect.Response[protosv1.GetUserResponse], error) {
-	// mock
-	resp := &protosv1.GetUserResponse{
-		User: nil,
+	conn := db.GetDB()
+	uc := &controller.UserController{}
+	resultResp, err := uc.GetUser(conn, req.Msg.DisplayId)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("db error"))
 	}
-	return connect.NewResponse(resp), nil
+
+	return connect.NewResponse(resultResp), nil
 }
 
 func (us *UserServer) GetUsers(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[protosv1.GetUsersResponse], error) {
-	// mock
-	resp := &protosv1.GetUsersResponse{
-		Users: []*protosv1.User{},
+	conn := db.GetDB()
+	uc := &controller.UserController{}
+	resultResp, err := uc.GetUsers(conn)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("db error"))
 	}
-	return connect.NewResponse(resp), nil
+
+	return connect.NewResponse(resultResp), nil
 }
 
 func (us *UserServer) CheckDisplayName(ctx context.Context, req *connect.Request[protosv1.CheckDisplayNameRequest]) (*connect.Response[protosv1.CheckDisplayNameResponse], error) {

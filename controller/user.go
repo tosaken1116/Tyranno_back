@@ -5,7 +5,6 @@ import (
 	"log"
 	"nnyd-back/db"
 	protosv1 "nnyd-back/pb/schemas/protos/v1"
-	"time"
 
 	"connectrpc.com/connect"
 	"gorm.io/gorm"
@@ -27,14 +26,7 @@ func (uc *UserController) CreateUser(conn *gorm.DB, msg *protosv1.CreateUserRequ
 	}
 
 	userResp := &protosv1.CreateUserResponse{
-		User: &protosv1.User{
-			DisplayId: u.DisplayId,
-			Name:      u.Name,
-			Icon:      u.Icon,
-			Profile:   u.Profile,
-			CreatedAt: u.CreatedAt.Format(time.RFC3339Nano),
-			UpdatedAt: u.UpdatedAt.Format(time.RFC3339Nano),
-		},
+		User: u.ToProtosModel(),
 	}
 	return userResp, nil
 }
@@ -57,14 +49,7 @@ func (uc *UserController) UpdateUser(conn *gorm.DB, id string, msg *protosv1.Upd
 	}
 
 	userResp := &protosv1.UpdateUserResponse{
-		User: &protosv1.User{
-			DisplayId: u.DisplayId,
-			Name:      u.Name,
-			Icon:      u.Icon,
-			Profile:   u.Profile,
-			CreatedAt: u.CreatedAt.Format(time.RFC3339Nano),
-			UpdatedAt: u.UpdatedAt.Format(time.RFC3339Nano),
-		},
+		User: u.ToProtosModel(),
 	}
 	return userResp, nil
 }
@@ -103,5 +88,44 @@ func (uc *UserController) CheckDisplayId(conn *gorm.DB, display_id string) (*pro
 
 	return &protosv1.CheckDisplayNameResponse{
 		IsNotExist: true,
+	}, nil
+}
+
+func (uc *UserController) GetUser(conn *gorm.DB, display_id string) (*protosv1.GetUserResponse, error) {
+	u := db.Users{}
+
+	if err := conn.First(&u, "display_id = ?", display_id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return &protosv1.GetUserResponse{User: nil}, nil
+		} else {
+			log.Println(err)
+			return nil, connect.NewError(connect.CodeInternal, err)
+		}
+	}
+
+	return &protosv1.GetUserResponse{
+		User: u.ToProtosModel(),
+	}, nil
+}
+
+func (uc *UserController) GetUsers(conn *gorm.DB) (*protosv1.GetUsersResponse, error) {
+	u := []db.Users{}
+	pu := []*protosv1.User{}
+
+	if err := conn.Find(&u).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return &protosv1.GetUsersResponse{Users: pu}, nil
+		} else {
+			log.Println(err)
+			return nil, connect.NewError(connect.CodeInternal, err)
+		}
+	}
+
+	for _, v := range u {
+		pu = append(pu, v.ToProtosModel())
+	}
+
+	return &protosv1.GetUsersResponse{
+		Users: pu,
 	}, nil
 }
