@@ -8,6 +8,7 @@ name: Build and Deploy to Cloud Run
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   SERVICE_NAME: nnyd
+  REGION: us-central1
 
 jobs:
   deploy:
@@ -20,16 +21,27 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      
+      - name: Create env
+        run: |
+          touch .env
+          echo ENV=production >> .env
+          echo POSTGRES_USER=${{ secrets.POSTGRES_USER }} >> .env
+          echo POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} >> .env
+          echo POSTGRES_HOST=${{ secrets.POSTGRES_HOST }} >> .env
+          echo POSTGRES_DB=${{ secrets.POSTGRES_DB }} >> .env
 
       - id: 'auth'
         name: 'Authenticate to Google Cloud'
-        uses: 'google-github-actions/auth@v0.4.0'
+        uses: 'google-github-actions/auth@v1'
         with:
           workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
           service_account: cicd-account@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com
 
       - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v0
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          version: '>= 363.0.0'
 
       - name: Authorize Docker push
         run: gcloud auth configure-docker
