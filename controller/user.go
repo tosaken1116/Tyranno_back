@@ -80,7 +80,7 @@ func (uc *UserController) CheckDisplayId(conn *gorm.DB, display_id string) (*pro
 	if err := conn.First(&u, "display_id = ?", display_id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &protosv1.CheckDisplayNameResponse{
-				IsNotExist: false,
+				IsNotExist: true,
 			}, nil
 		} else {
 			log.Println(err)
@@ -89,7 +89,7 @@ func (uc *UserController) CheckDisplayId(conn *gorm.DB, display_id string) (*pro
 	}
 
 	return &protosv1.CheckDisplayNameResponse{
-		IsNotExist: true,
+		IsNotExist: false,
 	}, nil
 }
 
