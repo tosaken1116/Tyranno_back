@@ -32,5 +32,16 @@ services:
       db:
         condition: service_healthy
 
+  adminer:
+    container_name: nnyd-adminer
+    hostname: nnyd-adminer
+    image: adminer:latest
+    restart: always
+    ports:
+      - 8081:8080
+    depends_on:
+      db:
+        condition: service_healthy
+
 volumes:
   db-data: null
