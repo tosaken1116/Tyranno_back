@@ -17,8 +17,8 @@ services:
 
   api:
     build:
-      args:
-        - target=dev
+      context: .
+      target: dev
     container_name: nnyd-backend
     hostname: nnyd-backend
     working_dir: /opt/nnyd
