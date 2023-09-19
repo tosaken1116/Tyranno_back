@@ -7,11 +7,11 @@ import (
 	"net/http"
 	"nnyd-back/config"
 	"nnyd-back/db"
-	"nnyd-back/pb/schemas/protos"
-	"nnyd-back/pb/schemas/protos/protosconnect"
+	protosv1 "nnyd-back/pb/schemas/protos/v1"
+	"nnyd-back/pb/schemas/protos/v1/protosv1connect"
 
-	"github.com/bufbuild/connect-go"
-	grpcreflect "github.com/bufbuild/connect-grpcreflect-go"
+	"connectrpc.com/connect"
+	"connectrpc.com/grpcreflect"
 	"github.com/rs/cors"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
@@ -19,7 +19,7 @@ import (
 
 type UserServer struct{}
 
-func (s *UserServer) CreateUser(ctx context.Context, req *connect.Request[protos.UserRequest]) (*connect.Response[protos.UserResponse], error) {
+func (s *UserServer) CreateUser(ctx context.Context, req *connect.Request[protosv1.CreateUserRequest]) (*connect.Response[protosv1.CreateUserResponse], error) {
 	log.Println("Request headers: ", req.Header())
 
 	if req.Msg.Name == "" || req.Msg.Icon == "" {
@@ -30,6 +30,7 @@ func (s *UserServer) CreateUser(ctx context.Context, req *connect.Request[protos
 	conn := db.GetDB()
 
 	u := db.Users{
+		Uid:  req.Msg.Name,
 		Name: req.Msg.Name,
 		Icon: req.Msg.Icon,
 	}
@@ -40,12 +41,12 @@ func (s *UserServer) CreateUser(ctx context.Context, req *connect.Request[protos
 		return nil, resp
 	}
 
-	responseUser := &protos.User{
+	responseUser := &protosv1.User{
 		Id:   "dummy",
 		Name: req.Msg.GetName(),
 		Icon: req.Msg.GetIcon(),
 	}
-	userResp := &protos.UserResponse{
+	userResp := &protosv1.CreateUserResponse{
 		User: responseUser,
 	}
 	resp := connect.NewResponse(userResp)
@@ -56,7 +57,7 @@ func (s *UserServer) CreateUser(ctx context.Context, req *connect.Request[protos
 func newServeMuxWithReflection() *http.ServeMux {
 	mux := http.NewServeMux()
 	reflector := grpcreflect.NewStaticReflector(
-		"nnyd.user.UserService",
+		"schemas.protos.v1.UserService",
 	)
 	mux.Handle(grpcreflect.NewHandlerV1(reflector))
 	mux.Handle(grpcreflect.NewHandlerV1Alpha(reflector))
@@ -85,7 +86,7 @@ func main() {
 
 	mux := newServeMuxWithReflection()
 	interceptor := newInterCeptors()
-	path, handler := protosconnect.NewUserServiceHandler(userServer, interceptor)
+	path, handler := protosv1connect.NewUserServiceHandler(userServer, interceptor)
 	mux.Handle(path, handler)
 
 	// cross settings
