@@ -13,7 +13,6 @@ RUN mkdir -p /opt/nnyd
 COPY . /opt/nnyd
 
 WORKDIR /opt/nnyd
-RUN cat .env.sample | sed -e 's/ENV=.*/ENV=production/g' | sed 's/PORT=.*//g' > .env
 
 RUN go build ./cmd/main.go
 
