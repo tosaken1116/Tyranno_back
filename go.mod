@@ -3,8 +3,8 @@ module nnyd-back
 go 1.21.1
 
 require (
-	github.com/bufbuild/connect-go v1.10.0
-	github.com/bufbuild/connect-grpcreflect-go v1.1.0
+	connectrpc.com/connect v1.11.1
+	connectrpc.com/grpcreflect v1.2.0
 	github.com/google/uuid v1.3.1
 	github.com/joho/godotenv v1.5.1
 	github.com/rs/cors v1.10.0

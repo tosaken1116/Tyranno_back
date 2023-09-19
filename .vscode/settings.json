@@ -13,6 +13,7 @@
     "protoimpl",
     "protoreflect",
     "protosconnect",
+    "protosv",
     "Tyranno"
   ],
   "files.insertFinalNewline": true
