@@ -14,6 +14,7 @@ var (
 	POSTGRES_DB       string
 	ENV               string
 	PORT              string
+	APP_NAME          string
 )
 
 func LoadConfig() {
@@ -26,4 +27,5 @@ func LoadConfig() {
 	POSTGRES_DB = os.Getenv("POSTGRES_DB")
 	ENV = os.Getenv("ENV")
 	PORT = os.Getenv("PORT")
+	APP_NAME = os.Getenv("APP_NAME")
 }
