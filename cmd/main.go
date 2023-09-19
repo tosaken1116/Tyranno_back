@@ -20,6 +20,7 @@ func newServeMuxWithReflection() *http.ServeMux {
 	mux := http.NewServeMux()
 	reflector := grpcreflect.NewStaticReflector(
 		"schemas.protos.v1.UserService",
+		"schemas.protos.v1.PostService",
 	)
 	mux.Handle(grpcreflect.NewHandlerV1(reflector))
 	mux.Handle(grpcreflect.NewHandlerV1Alpha(reflector))
@@ -47,8 +48,8 @@ func main() {
 
 	mux := newServeMuxWithReflection()
 	interceptor := newInterCeptors()
-	path, handler := protosv1connect.NewUserServiceHandler(&service.UserServer{}, interceptor)
-	mux.Handle(path, handler)
+	mux.Handle(protosv1connect.NewUserServiceHandler(&service.UserServer{}, interceptor))
+	mux.Handle(protosv1connect.NewPostServiceHandler(&service.PostServer{}, interceptor))
 
 	portStr := ":" + config.PORT
 	http.ListenAndServe(portStr, cors.AllowAll().Handler(h2c.NewHandler(mux, &http2.Server{})))

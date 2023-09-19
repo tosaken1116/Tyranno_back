@@ -21,9 +21,28 @@ type Base struct {
 
 type Users struct {
 	Base
-	Uid             string `gorm:"type:string;unique" json:"uid"`
-	FirebaseId      string `gorm:"unique" json:"firebase_id"`
-	Name            string `gorm:"not null" json:"name"`
-	Icon            string `gorm:"not null" json:"icon"`
-	AppVerifyStatus bool   `gorm:"not null default:false" json:"app_verify_status"`
+	DisplayId       string  `gorm:"type:string;unique" json:"uid"`
+	FirebaseId      string  `gorm:"unique" json:"firebase_id"`
+	Name            string  `gorm:"not null" json:"name"`
+	Icon            string  `gorm:"not null" json:"icon"`
+	Profile         *string `json:"profile"`
+	AppVerifyStatus bool    `gorm:"not null default:false" json:"app_verify_status"`
+}
+
+type Posts struct {
+	ID          int32     `gorm:"primaryKey" json:"id"`
+	Text        string    `gorm:"not null" json:"text"`
+	UserID      uuid.UUID `json:"user_id"`
+	ReplyAt     *int64    `json:"reply_at"`
+	PublishedAt string    `json:"published_at"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+	User        Users     `gorm:"foreignKey:UserID"`
+	ReplyAtPost *Posts    `gorm:"foreignKey:ReplyAt"`
+}
+
+type Favorites struct {
+	Base
+	UserID uuid.UUID
+	PostID int32
 }
