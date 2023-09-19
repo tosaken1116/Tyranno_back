@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"log"
 	"nnyd-back/config"
 	"nnyd-back/controller"
 	"nnyd-back/db"
@@ -18,16 +17,18 @@ import (
 type UserServer struct{}
 
 func (us *UserServer) CreateUser(ctx context.Context, req *connect.Request[protosv1.CreateUserRequest]) (*connect.Response[protosv1.CreateUserResponse], error) {
-	log.Println("Request headers: ", req.Header())
+	firebase_id := ctx.Value("firebase_id").(string)
+	if firebase_id == "" {
+		return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("verifying failed"))
+	}
 
 	if req.Msg.DisplayId == "" || req.Msg.Name == "" || req.Msg.Icon == "" {
-		// エラーにステータスコードを追加
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("display_id, name and icon is required"))
 	}
 
 	conn := db.GetDB()
 	uc := &controller.UserController{}
-	userResp, err := uc.CreateUser(conn, req.Msg)
+	userResp, err := uc.CreateUser(conn, req.Msg, firebase_id)
 
 	if err != nil {
 		return nil, err
@@ -37,11 +38,13 @@ func (us *UserServer) CreateUser(ctx context.Context, req *connect.Request[proto
 }
 
 func (us *UserServer) Signin(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[protosv1.SigninResponse], error) {
-	firebase_id := ctx.Value("firebase_id")
-
+	firebase_id := ctx.Value("firebase_id").(string)
+	if firebase_id == "" {
+		return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("verifying failed"))
+	}
 	conn := db.GetDB()
 	uc := &controller.UserController{}
-	user_id, err := uc.CheckVerifyTotp(conn, firebase_id.(string))
+	user_id, err := uc.CheckVerifyTotp(conn, firebase_id)
 	if err != nil {
 		return nil, err
 	}
@@ -65,18 +68,18 @@ func (us *UserServer) Signin(ctx context.Context, req *connect.Request[emptypb.E
 }
 
 func (us *UserServer) UpdateUser(ctx context.Context, req *connect.Request[protosv1.UpdateUserRequest]) (*connect.Response[protosv1.UpdateUserResponse], error) {
-	user_id := ctx.Value("user_id")
-
+	user_id := ctx.Value("user_id").(string)
 	if user_id == "" {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("verifying failed"))
+		return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("verifying failed"))
 	}
+
 	if req.Msg.DisplayId == "" || req.Msg.Name == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("display_id and name is required"))
 	}
 
 	conn := db.GetDB()
 	uc := &controller.UserController{}
-	userResp, err := uc.UpdateUser(conn, user_id.(string), req.Msg)
+	userResp, err := uc.UpdateUser(conn, user_id, req.Msg)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("db error"))
 	}
@@ -85,15 +88,14 @@ func (us *UserServer) UpdateUser(ctx context.Context, req *connect.Request[proto
 }
 
 func (us *UserServer) DeleteUser(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[protosv1.DeleteUserResponse], error) {
-	user_id := ctx.Value("user_id")
-
+	user_id := ctx.Value("user_id").(string)
 	if user_id == "" {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("verifying failed"))
+		return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("verifying failed"))
 	}
 
 	conn := db.GetDB()
 	uc := &controller.UserController{}
-	resultResp, err := uc.DeleteUser(conn, user_id.(string))
+	resultResp, err := uc.DeleteUser(conn, user_id)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("db error"))
 	}

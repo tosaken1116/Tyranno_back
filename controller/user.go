@@ -13,11 +13,12 @@ import (
 
 type UserController struct{}
 
-func (uc *UserController) CreateUser(conn *gorm.DB, msg *protosv1.CreateUserRequest) (*protosv1.CreateUserResponse, error) {
+func (uc *UserController) CreateUser(conn *gorm.DB, msg *protosv1.CreateUserRequest, firebase_id string) (*protosv1.CreateUserResponse, error) {
 	u := db.Users{
-		DisplayId: msg.DisplayId,
-		Name:      msg.Name,
-		Icon:      msg.Icon,
+		DisplayId:  msg.DisplayId,
+		Name:       msg.Name,
+		FirebaseId: firebase_id,
+		Icon:       msg.Icon,
 	}
 
 	if err := conn.Create(&u).Error; err != nil {
