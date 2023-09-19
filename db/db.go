@@ -17,13 +17,12 @@ var (
 
 // Init is initialize db from main function
 func Init() (err error) {
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s",
 		config.POSTGRES_HOST,
 		config.POSTGRES_USER,
 		config.POSTGRES_PASSWORD,
 		config.POSTGRES_DB,
 		"5432",
-		"disable",
 	)
 
 	db, err = gorm.Open(
