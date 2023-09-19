@@ -8,6 +8,7 @@ name: Build and Deploy to Cloud Run
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   SERVICE_NAME: nnyd
+  REGION: us-central1
 
 jobs:
   deploy:
