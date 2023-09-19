@@ -21,12 +21,15 @@ type Base struct {
 
 type Users struct {
 	Base
-	DisplayId       string  `gorm:"type:string;unique" json:"uid"`
-	FirebaseId      string  `gorm:"unique" json:"firebase_id"`
-	Name            string  `gorm:"not null" json:"name"`
-	Icon            string  `gorm:"not null" json:"icon"`
-	Profile         *string `json:"profile"`
-	AppVerifyStatus bool    `gorm:"not null default:false" json:"app_verify_status"`
+	DisplayId   string  `gorm:"type:string;unique" json:"uid"`
+	FirebaseId  string  `gorm:"unique" json:"firebase_id"`
+	Name        string  `gorm:"not null" json:"name"`
+	Icon        string  `gorm:"not null" json:"icon"`
+	Profile     *string `json:"profile"`
+	OtpSecret   string  `json:"otp_secret"`
+	OtpUrl      string  `json:"otp_url"`
+	OtpEnabled  bool    `gorm:"not null default:false" json:"otp_enabled"`
+	OtpVerified bool    `gorm:"not null default:false" json:"otp_verified"`
 }
 
 type Posts struct {
