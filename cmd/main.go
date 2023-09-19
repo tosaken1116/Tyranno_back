@@ -89,12 +89,6 @@ func main() {
 	path, handler := protosv1connect.NewUserServiceHandler(userServer, interceptor)
 	mux.Handle(path, handler)
 
-	// cross settings
-	c := cors.New(cors.Options{
-		AllowedOrigins: []string{"*"},
-		Debug:          config.ENV == "develop",
-	})
-
 	portStr := ":" + config.PORT
-	http.ListenAndServe(portStr, c.Handler(h2c.NewHandler(mux, &http2.Server{})))
+	http.ListenAndServe(portStr, cors.AllowAll().Handler(h2c.NewHandler(mux, &http2.Server{})))
 }
