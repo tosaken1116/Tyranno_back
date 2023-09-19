@@ -79,9 +79,11 @@ func main() {
 	config.LoadConfig()
 	userServer := &UserServer{}
 
-	db.Init()
-	defer db.Close()
-	db.AutoMigration()
+	if config.ENV == "develop" {
+		db.Init()
+		defer db.Close()
+		db.AutoMigration()
+	}
 
 	mux := newServeMuxWithReflection()
 	interceptor := newInterCeptors()
