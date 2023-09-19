@@ -49,9 +49,6 @@ jobs:
       - name: Build Docker image
         run: docker build -t asia.gcr.io/$PROJECT_ID/$SERVICE_NAME:${{ github.sha }} --target prod .
 
-      - name: Debug
-        run: gcloud auth list
-
       - name: Push Docker Image
         run: docker push asia.gcr.io/$PROJECT_ID/$SERVICE_NAME:${{ github.sha }}
 
