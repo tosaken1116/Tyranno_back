@@ -17,7 +17,7 @@ import (
 type UserServer struct{}
 
 func (us *UserServer) CreateUser(ctx context.Context, req *connect.Request[protosv1.CreateUserRequest]) (*connect.Response[protosv1.CreateUserResponse], error) {
-	firebase_id := ctx.Value("firebase_id").(string)
+	firebase_id := ctx.Value(config.FIREBASE_ID).(string)
 	if firebase_id == "" {
 		return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("verifying failed"))
 	}
@@ -38,7 +38,7 @@ func (us *UserServer) CreateUser(ctx context.Context, req *connect.Request[proto
 }
 
 func (us *UserServer) Signin(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[protosv1.SigninResponse], error) {
-	firebase_id := ctx.Value("firebase_id").(string)
+	firebase_id := ctx.Value(config.FIREBASE_ID).(string)
 	if firebase_id == "" {
 		return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("verifying failed"))
 	}
@@ -51,7 +51,7 @@ func (us *UserServer) Signin(ctx context.Context, req *connect.Request[emptypb.E
 
 	claims := jwt.MapClaims{
 		"user_id": user_id,
-		"exp":     time.Now().Add(30 * time.Minute).Unix(),
+		"exp":     time.Now().Add(3000 * time.Minute).Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -68,7 +68,7 @@ func (us *UserServer) Signin(ctx context.Context, req *connect.Request[emptypb.E
 }
 
 func (us *UserServer) UpdateUser(ctx context.Context, req *connect.Request[protosv1.UpdateUserRequest]) (*connect.Response[protosv1.UpdateUserResponse], error) {
-	user_id := ctx.Value("user_id").(string)
+	user_id := ctx.Value(config.USER_ID).(string)
 	if user_id == "" {
 		return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("verifying failed"))
 	}
@@ -88,7 +88,7 @@ func (us *UserServer) UpdateUser(ctx context.Context, req *connect.Request[proto
 }
 
 func (us *UserServer) DeleteUser(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[protosv1.DeleteUserResponse], error) {
-	user_id := ctx.Value("user_id").(string)
+	user_id := ctx.Value(config.USER_ID).(string)
 	if user_id == "" {
 		return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("verifying failed"))
 	}

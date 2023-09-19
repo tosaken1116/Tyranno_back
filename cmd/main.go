@@ -3,16 +3,17 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"nnyd-back/config"
 	"nnyd-back/db"
 	"nnyd-back/pb/schemas/protos/v1/protosv1connect"
 	"nnyd-back/service"
 	"strings"
+	"time"
 
 	"connectrpc.com/connect"
 	"connectrpc.com/grpcreflect"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/rs/cors"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
@@ -41,21 +42,41 @@ func newInterCeptors() connect.Option {
 			if len(authArray) < 2 {
 				return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("please set valid Authorization Header"))
 			}
-			if authArray[0] == "Bearer" {
+			if authArray[0] != "Bearer" {
 				return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("please set valid Authorization Header"))
 			}
 			token := authArray[1]
 			switch authProvider {
 			case "firebase":
-				// ここにtokenを使用してfirebaseに照合しに行く処理を書く
-				// firebase_idにfirebase_idを格納
+				client := config.GetFirebaseAuthClient()
+				userInfo, err := client.VerifyIDToken(ctx, token)
+				if err != nil {
+					return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed verifying firebase token"))
+				}
+				ctx = context.WithValue(ctx, config.FIREBASE_ID, userInfo.UID)
 			case "origin":
-				// ここにtokenを使用してjwt検証する処理を書く
-				// user_idにuser_id(displayではない)を格納
+				t, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
+					if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+						return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+					}
+
+					return []byte(config.JST_SECRET_KEY), nil
+				})
+
+				claims, ok := t.Claims.(jwt.MapClaims)
+				if !ok || !t.Valid {
+					return nil, connect.NewError(connect.CodePermissionDenied, err)
+				}
+				user_id := string(claims["user_id"].(string))
+				exp := int64(claims["exp"].(float64))
+
+				if time.Now().Unix() > exp {
+					return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("token is expired"))
+				}
+				ctx = context.WithValue(ctx, config.USER_ID, user_id)
 			default:
 				return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("please set valid AuthProvider Header"))
 			}
-			log.Println(req.Peer().Query)
 			return next(ctx, req)
 		})
 	}
@@ -64,6 +85,7 @@ func newInterCeptors() connect.Option {
 
 func main() {
 	config.LoadConfig()
+	config.InitFirebaseAuthClient()
 
 	db.Init()
 	defer db.Close()
