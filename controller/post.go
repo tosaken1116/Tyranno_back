@@ -22,14 +22,14 @@ func (pc *PostController) CreatePost(conn *gorm.DB, msg *protosv1.CreatePostRequ
 
 	u := db.Users{}
 
-	if err := conn.First(&u, "id = ?", user_id).Error; err != nil {
+	if err := conn.First(&u, "id = ? and is_delete = false", user_id).Error; err != nil {
 		log.Println(err)
 		return nil, err
 	}
 
 	if msg.ReplyAt != nil {
 		reply := db.Posts{}
-		if err := conn.First(&reply, "id = ?", msg.ReplyAt).Error; err != nil {
+		if err := conn.First(&reply, "id = ? and is_delete = false", msg.ReplyAt).Error; err != nil {
 			reply.ReplyNumber = reply.ReplyNumber + 1
 		}
 		if err := conn.Save(&reply).Error; err != nil {
@@ -66,7 +66,7 @@ func (pc *PostController) CreatePost(conn *gorm.DB, msg *protosv1.CreatePostRequ
 
 func (pc *PostController) GetPostByID(conn *gorm.DB, post_id int64) (*protosv1.GetPostResponse, error) {
 	p := db.Posts{}
-	if err := conn.Find(&p, "id = ?", post_id).Error; err != nil {
+	if err := conn.Find(&p, "id = ? and is_delete = false", post_id).Error; err != nil {
 		log.Println(err)
 		return nil, err
 	}
@@ -84,7 +84,7 @@ func (pc *PostController) GetPostByID(conn *gorm.DB, post_id int64) (*protosv1.G
 
 func (pc *PostController) GetPosts(conn *gorm.DB) (*protosv1.GetPostsResponse, error) {
 	p := []db.Posts{}
-	if err := conn.Find(&p).Error; err != nil {
+	if err := conn.Find(&p, "is_delete = false").Error; err != nil {
 		log.Println(err)
 		return nil, err
 	}
