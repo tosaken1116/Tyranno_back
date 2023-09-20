@@ -67,7 +67,7 @@ type Posts struct {
 	ReplyAtPost    *Posts    `gorm:"foreignKey:ReplyAt;reference:ID"`
 }
 
-func (p *Posts) ToProtosModel() *protosv1.Post {
+func (p *Posts) ToProtosModel(IsFavorited bool) *protosv1.Post {
 	return &protosv1.Post{
 		Id:             p.ID,
 		Text:           p.Text,
@@ -78,6 +78,27 @@ func (p *Posts) ToProtosModel() *protosv1.Post {
 		PublishedAt:    p.PublishedAt.Format(time.RFC3339Nano),
 		CreatedAt:      p.CreatedAt.Format(time.RFC3339Nano),
 		UpdatedAt:      p.UpdatedAt.Format(time.RFC3339Nano),
+		IsFavorited:    IsFavorited,
+	}
+}
+
+type PostsWithIsFavorited struct {
+	Posts
+	IsFavorited bool
+}
+
+func (pif *PostsWithIsFavorited) ToProtosModel() *protosv1.Post {
+	return &protosv1.Post{
+		Id:             pif.ID,
+		Text:           pif.Text,
+		User:           pif.User.ToProtosModel(),
+		FavoriteNumber: pif.FavoriteNumber,
+		ReplyAt:        pif.ReplyAt,
+		ReplyNumber:    pif.ReplyNumber,
+		PublishedAt:    pif.PublishedAt.Format(time.RFC3339Nano),
+		CreatedAt:      pif.CreatedAt.Format(time.RFC3339Nano),
+		UpdatedAt:      pif.UpdatedAt.Format(time.RFC3339Nano),
+		IsFavorited:    pif.IsFavorited,
 	}
 }
 

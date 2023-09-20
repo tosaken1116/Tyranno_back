@@ -38,8 +38,17 @@ func (ps *PostServer) CreatePost(ctx context.Context, req *connect.Request[proto
 }
 
 func (ps *PostServer) GetPost(ctx context.Context, req *connect.Request[protosv1.GetPostRequest]) (*connect.Response[protosv1.GetPostResponse], error) {
+	user_id := ctx.Value(config.USER_ID).(string)
+	var p_user_id *string = nil
+
 	conn := db.GetDB()
-	resp, err := pc.GetPostByID(conn, req.Msg.Id)
+	if user_id != "" {
+		if _, err := uc.GetUserById(conn, user_id); err != nil {
+			return nil, connect.NewError(connect.CodeUnauthenticated, err)
+		}
+		p_user_id = &user_id
+	}
+	resp, err := pc.GetPostByID(conn, req.Msg.Id, p_user_id)
 	if err != nil {
 		log.Println(err)
 		return nil, connect.NewError(connect.CodeInternal, err)
@@ -49,8 +58,18 @@ func (ps *PostServer) GetPost(ctx context.Context, req *connect.Request[protosv1
 }
 
 func (ps *PostServer) GetPosts(ctx context.Context, req *connect.Request[protosv1.GetPostsRequest]) (*connect.Response[protosv1.GetPostsResponse], error) {
+	user_id := ctx.Value(config.USER_ID).(string)
+	var p_user_id *string = nil
+
 	conn := db.GetDB()
-	resp, err := pc.GetPosts(conn)
+	if user_id != "" {
+		if _, err := uc.GetUserById(conn, user_id); err != nil {
+			return nil, connect.NewError(connect.CodeUnauthenticated, err)
+		}
+		p_user_id = &user_id
+	}
+
+	resp, err := pc.GetPosts(conn, p_user_id)
 	if err != nil {
 		log.Println(err)
 		return nil, connect.NewError(connect.CodeInternal, err)
@@ -68,7 +87,7 @@ func (ps *PostServer) DeletePost(ctx context.Context, req *connect.Request[proto
 		return nil, connect.NewError(connect.CodeUnauthenticated, err)
 	}
 
-	postResp, err := pc.GetPostByID(conn, req.Msg.Id)
+	postResp, err := pc.GetPostByID(conn, req.Msg.Id, nil)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeNotFound, err)
 	}
@@ -86,12 +105,21 @@ func (ps *PostServer) DeletePost(ctx context.Context, req *connect.Request[proto
 }
 
 func (ps *PostServer) GetReplies(ctx context.Context, req *connect.Request[protosv1.GetRepliesRequest]) (*connect.Response[protosv1.GetRepliesResponse], error) {
+	user_id := ctx.Value(config.USER_ID).(string)
+	var p_user_id *string = nil
+
 	conn := db.GetDB()
-	if _, err := pc.GetPostByID(conn, req.Msg.ReplyAt); err != nil {
+	if user_id != "" {
+		if _, err := uc.GetUserById(conn, user_id); err != nil {
+			return nil, connect.NewError(connect.CodeUnauthenticated, err)
+		}
+		p_user_id = &user_id
+	}
+	if _, err := pc.GetPostByID(conn, req.Msg.ReplyAt, nil); err != nil {
 		return nil, connect.NewError(connect.CodeNotFound, err)
 	}
 
-	resp, err := pc.GetReplies(conn, req.Msg.ReplyAt)
+	resp, err := pc.GetReplies(conn, req.Msg.ReplyAt, p_user_id)
 	if err != nil {
 		log.Println(err)
 		return nil, connect.NewError(connect.CodeInternal, err)
@@ -107,7 +135,7 @@ func (ps *PostServer) CreateFavorite(ctx context.Context, req *connect.Request[p
 	if _, err := uc.GetUserById(conn, user_id); err != nil {
 		return nil, connect.NewError(connect.CodeUnauthenticated, err)
 	}
-	if _, err := pc.GetPostByID(conn, req.Msg.FavoriteAt); err != nil {
+	if _, err := pc.GetPostByID(conn, req.Msg.FavoriteAt, nil); err != nil {
 		return nil, connect.NewError(connect.CodeNotFound, err)
 	}
 
@@ -126,7 +154,7 @@ func (ps *PostServer) DeleteFavorite(ctx context.Context, req *connect.Request[p
 	if _, err := uc.GetUserById(conn, user_id); err != nil {
 		return nil, connect.NewError(connect.CodeUnauthenticated, err)
 	}
-	if _, err := pc.GetPostByID(conn, req.Msg.FavoriteAt); err != nil {
+	if _, err := pc.GetPostByID(conn, req.Msg.FavoriteAt, nil); err != nil {
 		return nil, connect.NewError(connect.CodeNotFound, err)
 	}
 
@@ -145,7 +173,7 @@ func (ps *PostServer) GetMyFavoritePosts(ctx context.Context, req *connect.Reque
 		return nil, connect.NewError(connect.CodeUnauthenticated, err)
 	}
 
-	resp, err := fac.GetFavoritePosts(conn, user_id)
+	resp, err := fac.GetFavoritePosts(conn, user_id, &user_id)
 	if err != nil {
 		log.Println(err)
 		return nil, connect.NewError(connect.CodeInternal, err)
@@ -154,13 +182,22 @@ func (ps *PostServer) GetMyFavoritePosts(ctx context.Context, req *connect.Reque
 }
 
 func (ps *PostServer) GetOthersFavoritePosts(ctx context.Context, req *connect.Request[protosv1.GetUserRequest]) (*connect.Response[protosv1.GetPostsResponse], error) {
+	my_user_id := ctx.Value(config.USER_ID).(string)
+	var p_my_user_id *string = nil
+
 	conn := db.GetDB()
+	if my_user_id != "" {
+		if _, err := uc.GetUserById(conn, my_user_id); err != nil {
+			return nil, connect.NewError(connect.CodeUnauthenticated, err)
+		}
+		p_my_user_id = &my_user_id
+	}
 	user_id, err := uc.GetIdFromDisplayId(conn, req.Msg.DisplayId)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeUnauthenticated, err)
 	}
 
-	resp, err := fac.GetFavoritePosts(conn, user_id)
+	resp, err := fac.GetFavoritePosts(conn, user_id, p_my_user_id)
 	if err != nil {
 		log.Println(err)
 		return nil, connect.NewError(connect.CodeInternal, err)
@@ -174,7 +211,7 @@ func (ps *PostServer) GetUsersFavoritedPost(ctx context.Context, req *connect.Re
 	if _, err := uc.GetUserById(conn, user_id); err != nil {
 		return nil, connect.NewError(connect.CodeUnauthenticated, err)
 	}
-	if _, err := pc.GetPostByID(conn, req.Msg.Id); err != nil {
+	if _, err := pc.GetPostByID(conn, req.Msg.Id, nil); err != nil {
 		return nil, connect.NewError(connect.CodeNotFound, err)
 	}
 

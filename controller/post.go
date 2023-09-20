@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"nnyd-back/db"
@@ -60,13 +61,13 @@ func (pc *PostController) CreatePost(conn *gorm.DB, msg *protosv1.CreatePostRequ
 	}
 
 	postResponse := &protosv1.CreatePostResponse{
-		Post: p.ToProtosModel(),
+		Post: p.ToProtosModel(false),
 	}
 
 	return postResponse, nil
 }
 
-func (pc *PostController) GetPostByID(conn *gorm.DB, post_id int32) (*protosv1.GetPostResponse, error) {
+func (pc *PostController) GetPostByID(conn *gorm.DB, post_id int32, user_id *string) (*protosv1.GetPostResponse, error) {
 	p := db.Posts{}
 	if err := conn.Find(&p, "id = ? and is_delete = false", post_id).Error; err != nil {
 		log.Println(err)
@@ -76,15 +77,27 @@ func (pc *PostController) GetPostByID(conn *gorm.DB, post_id int32) (*protosv1.G
 		log.Println(err)
 		return nil, err
 	}
+	isFavorited := false
+	if user_id != nil {
+		fa := db.Favorites{}
+		if err := conn.First(&fa, "user_id = ? and post_id = ?", user_id, post_id).Error; err != nil {
+			if !errors.Is(err, gorm.ErrRecordNotFound) {
+				log.Println(err)
+				return nil, err
+			}
+		} else {
+			isFavorited = true
+		}
+	}
 
 	postResponse := &protosv1.GetPostResponse{
-		Post: p.ToProtosModel(),
+		Post: p.ToProtosModel(isFavorited),
 	}
 
 	return postResponse, nil
 }
 
-func (pc *PostController) GetPosts(conn *gorm.DB) (*protosv1.GetPostsResponse, error) {
+func (pc *PostController) GetPosts(conn *gorm.DB, user_id *string) (*protosv1.GetPostsResponse, error) {
 	p := []db.Posts{}
 	if err := conn.Order("published_at desc").Find(&p, "is_delete = false").Error; err != nil {
 		log.Println(err)
@@ -99,7 +112,16 @@ func (pc *PostController) GetPosts(conn *gorm.DB) (*protosv1.GetPostsResponse, e
 	posts := []*protosv1.Post{}
 
 	for i := 0; i < len(p); i++ {
-		posts = append(posts, p[i].ToProtosModel())
+		var err error = nil
+		if user_id != nil {
+			if err = conn.First(&db.Favorites{}, "user_id = ? and post_id = ?", user_id, p[i].ID).Error; err != nil {
+				if !errors.Is(err, gorm.ErrRecordNotFound) {
+					log.Println(err)
+					return nil, err
+				}
+			}
+		}
+		posts = append(posts, p[i].ToProtosModel(user_id != nil && err == nil))
 	}
 
 	postResponse := &protosv1.GetPostsResponse{
@@ -128,7 +150,7 @@ func (pc *PostController) DeletePost(conn *gorm.DB, post_id int32) (*protosv1.De
 	}, nil
 }
 
-func (pc *PostController) GetReplies(conn *gorm.DB, post_id int32) (*protosv1.GetRepliesResponse, error) {
+func (pc *PostController) GetReplies(conn *gorm.DB, post_id int32, user_id *string) (*protosv1.GetRepliesResponse, error) {
 	p := []db.Posts{}
 	if err := conn.Find(&p, "reply_at = ? and is_delete = false", post_id).Error; err != nil {
 		log.Println(err)
@@ -143,7 +165,16 @@ func (pc *PostController) GetReplies(conn *gorm.DB, post_id int32) (*protosv1.Ge
 	posts := []*protosv1.Post{}
 
 	for i := 0; i < len(p); i++ {
-		posts = append(posts, p[i].ToProtosModel())
+		var err error = nil
+		if user_id != nil {
+			if err = conn.First(&db.Favorites{}, "user_id = ? and post_id = ?", user_id, p[i].ID).Error; err != nil {
+				if !errors.Is(err, gorm.ErrRecordNotFound) {
+					log.Println(err)
+					return nil, err
+				}
+			}
+		}
+		posts = append(posts, p[i].ToProtosModel(user_id != nil && err == nil))
 	}
 
 	postResponse := &protosv1.GetRepliesResponse{
