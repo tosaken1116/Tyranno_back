@@ -14,6 +14,10 @@ import (
 type FollowController struct{}
 
 func (foc *FollowController) FollowUser(conn *gorm.DB, from_user_id string, to_user_id string) (*protosv1.FollowUserResponse, error) {
+	if from_user_id == to_user_id {
+		err := fmt.Errorf("can not follow yourself")
+		return nil, err
+	}
 	follow := db.Follows{}
 	if err := conn.First(&follow, "from_user_id = ? and to_user_id = ?", from_user_id, to_user_id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -60,7 +64,7 @@ func (foc *FollowController) FollowUser(conn *gorm.DB, from_user_id string, to_u
 			}
 
 			return &protosv1.FollowUserResponse{
-				User: fu.ToProtosModel(),
+				User: tu.ToProtosModel(),
 			}, nil
 		} else {
 			log.Println(err)
@@ -73,6 +77,10 @@ func (foc *FollowController) FollowUser(conn *gorm.DB, from_user_id string, to_u
 }
 
 func (foc *FollowController) UnfollowUser(conn *gorm.DB, from_user_id string, to_user_id string) (*protosv1.UnfollowUserResponse, error) {
+	if from_user_id == to_user_id {
+		err := fmt.Errorf("can not follow yourself")
+		return nil, err
+	}
 	follow := db.Follows{}
 	if err := conn.First(&follow, "from_user_id = ? and to_user_id = ?", from_user_id, to_user_id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -112,19 +120,23 @@ func (foc *FollowController) UnfollowUser(conn *gorm.DB, from_user_id string, to
 	}
 
 	return &protosv1.UnfollowUserResponse{
-		User: fu.ToProtosModel(),
+		User: tu.ToProtosModel(),
 	}, nil
 }
 
 func (foc *FollowController) GetFollowByID(conn *gorm.DB, user_id string) (*protosv1.GetUsersResponse, error) {
-	u := []db.Follows{}
-	if err := conn.Find(u, "from_user_id = ?", user_id).Error; err != nil {
+	f := []db.Follows{}
+	if err := conn.Find(&f, "from_user_id = ?", user_id).Error; err != nil {
 		log.Println(err)
 		return nil, err
 	}
 	users := []*protosv1.User{}
-	for i := 0; i < len(u); i++ {
-		users = append(users, u[i].ToUser.ToProtosModel())
+	for i := 0; i < len(f); i++ {
+		if err := conn.Model(&f[i]).Association("ToUser").Find(&f[i].ToUser); err != nil {
+			log.Println(err)
+			return nil, err
+		}
+		users = append(users, f[i].ToUser.ToProtosModel())
 	}
 
 	return &protosv1.GetUsersResponse{
@@ -133,14 +145,18 @@ func (foc *FollowController) GetFollowByID(conn *gorm.DB, user_id string) (*prot
 }
 
 func (foc *FollowController) GetFollowerByID(conn *gorm.DB, user_id string) (*protosv1.GetUsersResponse, error) {
-	u := []db.Follows{}
-	if err := conn.Find(u, "to_user_id = ?", user_id).Error; err != nil {
+	f := []db.Follows{}
+	if err := conn.Find(&f, "to_user_id = ?", user_id).Error; err != nil {
 		log.Println(err)
 		return nil, err
 	}
 	users := []*protosv1.User{}
-	for i := 0; i < len(u); i++ {
-		users = append(users, u[i].FromUser.ToProtosModel())
+	for i := 0; i < len(f); i++ {
+		if err := conn.Model(&f[i]).Association("FromUser").Find(&f[i].FromUser); err != nil {
+			log.Println(err)
+			return nil, err
+		}
+		users = append(users, f[i].FromUser.ToProtosModel())
 	}
 
 	return &protosv1.GetUsersResponse{

@@ -124,11 +124,12 @@ func (us *UserServer) FollowUser(ctx context.Context, req *connect.Request[proto
 	if _, err := uc.GetUserById(conn, user_id); err != nil {
 		return nil, connect.NewError(connect.CodeUnauthenticated, err)
 	}
-	if _, err := uc.GetUserById(conn, req.Msg.DisplayId); err != nil {
+	to_user_id, err := uc.GetIdFromDisplayId(conn, req.Msg.DisplayId)
+	if err != nil {
 		return nil, connect.NewError(connect.CodeUnauthenticated, err)
 	}
 
-	resp, err := foc.FollowUser(conn, user_id, req.Msg.DisplayId)
+	resp, err := foc.FollowUser(conn, user_id, to_user_id)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -141,11 +142,12 @@ func (us *UserServer) UnfollowUser(ctx context.Context, req *connect.Request[pro
 	if _, err := uc.GetUserById(conn, user_id); err != nil {
 		return nil, connect.NewError(connect.CodeUnauthenticated, err)
 	}
-	if _, err := uc.GetUserById(conn, req.Msg.DisplayId); err != nil {
+	to_user_id, err := uc.GetIdFromDisplayId(conn, req.Msg.DisplayId)
+	if err != nil {
 		return nil, connect.NewError(connect.CodeUnauthenticated, err)
 	}
 
-	resp, err := foc.UnfollowUser(conn, user_id, req.Msg.DisplayId)
+	resp, err := foc.UnfollowUser(conn, user_id, to_user_id)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -153,9 +155,9 @@ func (us *UserServer) UnfollowUser(ctx context.Context, req *connect.Request[pro
 }
 
 func (us *UserServer) GetFollowByID(ctx context.Context, req *connect.Request[protosv1.GetUserRequest]) (*connect.Response[protosv1.GetUsersResponse], error) {
-	user_id := req.Msg.DisplayId
 	conn := db.GetDB()
-	if _, err := uc.GetUserById(conn, user_id); err != nil {
+	user_id, err := uc.GetIdFromDisplayId(conn, req.Msg.DisplayId)
+	if err != nil {
 		return nil, connect.NewError(connect.CodeUnauthenticated, err)
 	}
 
@@ -167,9 +169,9 @@ func (us *UserServer) GetFollowByID(ctx context.Context, req *connect.Request[pr
 }
 
 func (us *UserServer) GetFollowerByID(ctx context.Context, req *connect.Request[protosv1.GetUserRequest]) (*connect.Response[protosv1.GetUsersResponse], error) {
-	user_id := req.Msg.DisplayId
 	conn := db.GetDB()
-	if _, err := uc.GetUserById(conn, user_id); err != nil {
+	user_id, err := uc.GetIdFromDisplayId(conn, req.Msg.DisplayId)
+	if err != nil {
 		return nil, connect.NewError(connect.CodeUnauthenticated, err)
 	}
 
