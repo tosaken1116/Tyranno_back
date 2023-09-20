@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"nnyd-back/config"
@@ -13,9 +14,9 @@ import (
 	"gorm.io/gorm"
 )
 
-type TotpController struct{}
+type AuthController struct{}
 
-func (uc *TotpController) GenerateTotpKeyController(conn *gorm.DB, msg *protosv1.GenerateTotpKeyRequest) (*protosv1.GenerateTotpKeyResponse, error) {
+func (ac *AuthController) GenerateTotpKeyController(conn *gorm.DB, msg *protosv1.GenerateTotpKeyRequest) (*protosv1.GenerateTotpKeyResponse, error) {
 	u := db.Users{}
 
 	if err := conn.First(&u, "firebase_id = ?", msg.FirebaseId).Error; err != nil {
@@ -60,7 +61,7 @@ func (uc *TotpController) GenerateTotpKeyController(conn *gorm.DB, msg *protosv1
 	return totpResponse, nil
 }
 
-func (uc *TotpController) VerifyTotpController(conn *gorm.DB, msg *protosv1.VerifyTotpRequest) (*protosv1.VerifyTotpResponse, error) {
+func (ac *AuthController) VerifyTotpController(conn *gorm.DB, msg *protosv1.VerifyTotpRequest) (*protosv1.VerifyTotpResponse, error) {
 	u := db.Users{}
 
 	if err := conn.First(&u, "firebase_id = ?", msg.FirebaseId).Error; err != nil {
@@ -108,7 +109,7 @@ func (uc *TotpController) VerifyTotpController(conn *gorm.DB, msg *protosv1.Veri
 	return totpResponse, nil
 }
 
-func (uc *TotpController) ValidateTotpController(conn *gorm.DB, msg *protosv1.ValidateTotpRequest) (*protosv1.ValidateTotpResponse, error) {
+func (ac *AuthController) ValidateTotpController(conn *gorm.DB, msg *protosv1.ValidateTotpRequest) (*protosv1.ValidateTotpResponse, error) {
 	u := db.Users{}
 
 	if err := conn.First(&u, "firebase_id = ?", msg.FirebaseId).Error; err != nil {
@@ -147,4 +148,23 @@ func (uc *TotpController) ValidateTotpController(conn *gorm.DB, msg *protosv1.Va
 	}
 
 	return totpResponse, nil
+}
+
+func (ac *AuthController) CheckVerifyTotp(conn *gorm.DB, firebase_id string) (string, error) {
+	u := db.Users{}
+
+	if err := conn.First(&u, "firebase_id = ?", firebase_id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return "", fmt.Errorf("user having this firebase_id is not found")
+		} else {
+			log.Println(err)
+			return "", err
+		}
+	}
+
+	if !u.OtpVerified {
+		return "", fmt.Errorf("totp check failed")
+	}
+
+	return u.ID.String(), nil
 }

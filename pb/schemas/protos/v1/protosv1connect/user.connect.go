@@ -36,12 +36,12 @@ const (
 const (
 	// UserServiceCreateUserProcedure is the fully-qualified name of the UserService's CreateUser RPC.
 	UserServiceCreateUserProcedure = "/schemas.protos.v1.UserService/CreateUser"
-	// UserServiceSigninProcedure is the fully-qualified name of the UserService's Signin RPC.
-	UserServiceSigninProcedure = "/schemas.protos.v1.UserService/Signin"
 	// UserServiceUpdateUserProcedure is the fully-qualified name of the UserService's UpdateUser RPC.
 	UserServiceUpdateUserProcedure = "/schemas.protos.v1.UserService/UpdateUser"
 	// UserServiceDeleteUserProcedure is the fully-qualified name of the UserService's DeleteUser RPC.
 	UserServiceDeleteUserProcedure = "/schemas.protos.v1.UserService/DeleteUser"
+	// UserServiceGetMeProcedure is the fully-qualified name of the UserService's GetMe RPC.
+	UserServiceGetMeProcedure = "/schemas.protos.v1.UserService/GetMe"
 	// UserServiceGetUserProcedure is the fully-qualified name of the UserService's GetUser RPC.
 	UserServiceGetUserProcedure = "/schemas.protos.v1.UserService/GetUser"
 	// UserServiceGetUsersProcedure is the fully-qualified name of the UserService's GetUsers RPC.
@@ -49,17 +49,24 @@ const (
 	// UserServiceCheckDisplayNameProcedure is the fully-qualified name of the UserService's
 	// CheckDisplayName RPC.
 	UserServiceCheckDisplayNameProcedure = "/schemas.protos.v1.UserService/CheckDisplayName"
+	// UserServiceFollowUserProcedure is the fully-qualified name of the UserService's FollowUser RPC.
+	UserServiceFollowUserProcedure = "/schemas.protos.v1.UserService/FollowUser"
+	// UserServiceUnfollowUserProcedure is the fully-qualified name of the UserService's UnfollowUser
+	// RPC.
+	UserServiceUnfollowUserProcedure = "/schemas.protos.v1.UserService/UnfollowUser"
 )
 
 // UserServiceClient is a client for the schemas.protos.v1.UserService service.
 type UserServiceClient interface {
 	CreateUser(context.Context, *connect.Request[v1.CreateUserRequest]) (*connect.Response[v1.CreateUserResponse], error)
-	Signin(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.SigninResponse], error)
 	UpdateUser(context.Context, *connect.Request[v1.UpdateUserRequest]) (*connect.Response[v1.UpdateUserResponse], error)
 	DeleteUser(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.DeleteUserResponse], error)
+	GetMe(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.GetUserResponse], error)
 	GetUser(context.Context, *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUserResponse], error)
 	GetUsers(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.GetUsersResponse], error)
 	CheckDisplayName(context.Context, *connect.Request[v1.CheckDisplayNameRequest]) (*connect.Response[v1.CheckDisplayNameResponse], error)
+	FollowUser(context.Context, *connect.Request[v1.FollowUserRequest]) (*connect.Response[v1.FollowUserResponse], error)
+	UnfollowUser(context.Context, *connect.Request[v1.UnfollowUserRequest]) (*connect.Response[v1.UnfollowUserResponse], error)
 }
 
 // NewUserServiceClient constructs a client for the schemas.protos.v1.UserService service. By
@@ -77,11 +84,6 @@ func NewUserServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			baseURL+UserServiceCreateUserProcedure,
 			opts...,
 		),
-		signin: connect.NewClient[emptypb.Empty, v1.SigninResponse](
-			httpClient,
-			baseURL+UserServiceSigninProcedure,
-			opts...,
-		),
 		updateUser: connect.NewClient[v1.UpdateUserRequest, v1.UpdateUserResponse](
 			httpClient,
 			baseURL+UserServiceUpdateUserProcedure,
@@ -90,6 +92,11 @@ func NewUserServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 		deleteUser: connect.NewClient[emptypb.Empty, v1.DeleteUserResponse](
 			httpClient,
 			baseURL+UserServiceDeleteUserProcedure,
+			opts...,
+		),
+		getMe: connect.NewClient[emptypb.Empty, v1.GetUserResponse](
+			httpClient,
+			baseURL+UserServiceGetMeProcedure,
 			opts...,
 		),
 		getUser: connect.NewClient[v1.GetUserRequest, v1.GetUserResponse](
@@ -107,28 +114,35 @@ func NewUserServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			baseURL+UserServiceCheckDisplayNameProcedure,
 			opts...,
 		),
+		followUser: connect.NewClient[v1.FollowUserRequest, v1.FollowUserResponse](
+			httpClient,
+			baseURL+UserServiceFollowUserProcedure,
+			opts...,
+		),
+		unfollowUser: connect.NewClient[v1.UnfollowUserRequest, v1.UnfollowUserResponse](
+			httpClient,
+			baseURL+UserServiceUnfollowUserProcedure,
+			opts...,
+		),
 	}
 }
 
 // userServiceClient implements UserServiceClient.
 type userServiceClient struct {
 	createUser       *connect.Client[v1.CreateUserRequest, v1.CreateUserResponse]
-	signin           *connect.Client[emptypb.Empty, v1.SigninResponse]
 	updateUser       *connect.Client[v1.UpdateUserRequest, v1.UpdateUserResponse]
 	deleteUser       *connect.Client[emptypb.Empty, v1.DeleteUserResponse]
+	getMe            *connect.Client[emptypb.Empty, v1.GetUserResponse]
 	getUser          *connect.Client[v1.GetUserRequest, v1.GetUserResponse]
 	getUsers         *connect.Client[emptypb.Empty, v1.GetUsersResponse]
 	checkDisplayName *connect.Client[v1.CheckDisplayNameRequest, v1.CheckDisplayNameResponse]
+	followUser       *connect.Client[v1.FollowUserRequest, v1.FollowUserResponse]
+	unfollowUser     *connect.Client[v1.UnfollowUserRequest, v1.UnfollowUserResponse]
 }
 
 // CreateUser calls schemas.protos.v1.UserService.CreateUser.
 func (c *userServiceClient) CreateUser(ctx context.Context, req *connect.Request[v1.CreateUserRequest]) (*connect.Response[v1.CreateUserResponse], error) {
 	return c.createUser.CallUnary(ctx, req)
-}
-
-// Signin calls schemas.protos.v1.UserService.Signin.
-func (c *userServiceClient) Signin(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[v1.SigninResponse], error) {
-	return c.signin.CallUnary(ctx, req)
 }
 
 // UpdateUser calls schemas.protos.v1.UserService.UpdateUser.
@@ -139,6 +153,11 @@ func (c *userServiceClient) UpdateUser(ctx context.Context, req *connect.Request
 // DeleteUser calls schemas.protos.v1.UserService.DeleteUser.
 func (c *userServiceClient) DeleteUser(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[v1.DeleteUserResponse], error) {
 	return c.deleteUser.CallUnary(ctx, req)
+}
+
+// GetMe calls schemas.protos.v1.UserService.GetMe.
+func (c *userServiceClient) GetMe(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[v1.GetUserResponse], error) {
+	return c.getMe.CallUnary(ctx, req)
 }
 
 // GetUser calls schemas.protos.v1.UserService.GetUser.
@@ -156,15 +175,27 @@ func (c *userServiceClient) CheckDisplayName(ctx context.Context, req *connect.R
 	return c.checkDisplayName.CallUnary(ctx, req)
 }
 
+// FollowUser calls schemas.protos.v1.UserService.FollowUser.
+func (c *userServiceClient) FollowUser(ctx context.Context, req *connect.Request[v1.FollowUserRequest]) (*connect.Response[v1.FollowUserResponse], error) {
+	return c.followUser.CallUnary(ctx, req)
+}
+
+// UnfollowUser calls schemas.protos.v1.UserService.UnfollowUser.
+func (c *userServiceClient) UnfollowUser(ctx context.Context, req *connect.Request[v1.UnfollowUserRequest]) (*connect.Response[v1.UnfollowUserResponse], error) {
+	return c.unfollowUser.CallUnary(ctx, req)
+}
+
 // UserServiceHandler is an implementation of the schemas.protos.v1.UserService service.
 type UserServiceHandler interface {
 	CreateUser(context.Context, *connect.Request[v1.CreateUserRequest]) (*connect.Response[v1.CreateUserResponse], error)
-	Signin(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.SigninResponse], error)
 	UpdateUser(context.Context, *connect.Request[v1.UpdateUserRequest]) (*connect.Response[v1.UpdateUserResponse], error)
 	DeleteUser(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.DeleteUserResponse], error)
+	GetMe(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.GetUserResponse], error)
 	GetUser(context.Context, *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUserResponse], error)
 	GetUsers(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.GetUsersResponse], error)
 	CheckDisplayName(context.Context, *connect.Request[v1.CheckDisplayNameRequest]) (*connect.Response[v1.CheckDisplayNameResponse], error)
+	FollowUser(context.Context, *connect.Request[v1.FollowUserRequest]) (*connect.Response[v1.FollowUserResponse], error)
+	UnfollowUser(context.Context, *connect.Request[v1.UnfollowUserRequest]) (*connect.Response[v1.UnfollowUserResponse], error)
 }
 
 // NewUserServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -178,11 +209,6 @@ func NewUserServiceHandler(svc UserServiceHandler, opts ...connect.HandlerOption
 		svc.CreateUser,
 		opts...,
 	)
-	userServiceSigninHandler := connect.NewUnaryHandler(
-		UserServiceSigninProcedure,
-		svc.Signin,
-		opts...,
-	)
 	userServiceUpdateUserHandler := connect.NewUnaryHandler(
 		UserServiceUpdateUserProcedure,
 		svc.UpdateUser,
@@ -191,6 +217,11 @@ func NewUserServiceHandler(svc UserServiceHandler, opts ...connect.HandlerOption
 	userServiceDeleteUserHandler := connect.NewUnaryHandler(
 		UserServiceDeleteUserProcedure,
 		svc.DeleteUser,
+		opts...,
+	)
+	userServiceGetMeHandler := connect.NewUnaryHandler(
+		UserServiceGetMeProcedure,
+		svc.GetMe,
 		opts...,
 	)
 	userServiceGetUserHandler := connect.NewUnaryHandler(
@@ -208,22 +239,36 @@ func NewUserServiceHandler(svc UserServiceHandler, opts ...connect.HandlerOption
 		svc.CheckDisplayName,
 		opts...,
 	)
+	userServiceFollowUserHandler := connect.NewUnaryHandler(
+		UserServiceFollowUserProcedure,
+		svc.FollowUser,
+		opts...,
+	)
+	userServiceUnfollowUserHandler := connect.NewUnaryHandler(
+		UserServiceUnfollowUserProcedure,
+		svc.UnfollowUser,
+		opts...,
+	)
 	return "/schemas.protos.v1.UserService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case UserServiceCreateUserProcedure:
 			userServiceCreateUserHandler.ServeHTTP(w, r)
-		case UserServiceSigninProcedure:
-			userServiceSigninHandler.ServeHTTP(w, r)
 		case UserServiceUpdateUserProcedure:
 			userServiceUpdateUserHandler.ServeHTTP(w, r)
 		case UserServiceDeleteUserProcedure:
 			userServiceDeleteUserHandler.ServeHTTP(w, r)
+		case UserServiceGetMeProcedure:
+			userServiceGetMeHandler.ServeHTTP(w, r)
 		case UserServiceGetUserProcedure:
 			userServiceGetUserHandler.ServeHTTP(w, r)
 		case UserServiceGetUsersProcedure:
 			userServiceGetUsersHandler.ServeHTTP(w, r)
 		case UserServiceCheckDisplayNameProcedure:
 			userServiceCheckDisplayNameHandler.ServeHTTP(w, r)
+		case UserServiceFollowUserProcedure:
+			userServiceFollowUserHandler.ServeHTTP(w, r)
+		case UserServiceUnfollowUserProcedure:
+			userServiceUnfollowUserHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -237,16 +282,16 @@ func (UnimplementedUserServiceHandler) CreateUser(context.Context, *connect.Requ
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("schemas.protos.v1.UserService.CreateUser is not implemented"))
 }
 
-func (UnimplementedUserServiceHandler) Signin(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.SigninResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("schemas.protos.v1.UserService.Signin is not implemented"))
-}
-
 func (UnimplementedUserServiceHandler) UpdateUser(context.Context, *connect.Request[v1.UpdateUserRequest]) (*connect.Response[v1.UpdateUserResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("schemas.protos.v1.UserService.UpdateUser is not implemented"))
 }
 
 func (UnimplementedUserServiceHandler) DeleteUser(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.DeleteUserResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("schemas.protos.v1.UserService.DeleteUser is not implemented"))
+}
+
+func (UnimplementedUserServiceHandler) GetMe(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.GetUserResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("schemas.protos.v1.UserService.GetMe is not implemented"))
 }
 
 func (UnimplementedUserServiceHandler) GetUser(context.Context, *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUserResponse], error) {
@@ -259,4 +304,12 @@ func (UnimplementedUserServiceHandler) GetUsers(context.Context, *connect.Reques
 
 func (UnimplementedUserServiceHandler) CheckDisplayName(context.Context, *connect.Request[v1.CheckDisplayNameRequest]) (*connect.Response[v1.CheckDisplayNameResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("schemas.protos.v1.UserService.CheckDisplayName is not implemented"))
+}
+
+func (UnimplementedUserServiceHandler) FollowUser(context.Context, *connect.Request[v1.FollowUserRequest]) (*connect.Response[v1.FollowUserResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("schemas.protos.v1.UserService.FollowUser is not implemented"))
+}
+
+func (UnimplementedUserServiceHandler) UnfollowUser(context.Context, *connect.Request[v1.UnfollowUserRequest]) (*connect.Response[v1.UnfollowUserResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("schemas.protos.v1.UserService.UnfollowUser is not implemented"))
 }

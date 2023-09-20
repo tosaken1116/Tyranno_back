@@ -2,7 +2,6 @@ package controller
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"nnyd-back/db"
 	protosv1 "nnyd-back/pb/schemas/protos/v1"
@@ -108,6 +107,23 @@ func (uc *UserController) GetUser(conn *gorm.DB, display_id string) (*protosv1.G
 	}, nil
 }
 
+func (uc *UserController) GetUserById(conn *gorm.DB, id string) (*protosv1.GetUserResponse, error) {
+	u := db.Users{}
+
+	if err := conn.First(&u, "id = ?", id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return &protosv1.GetUserResponse{User: nil}, nil
+		} else {
+			log.Println(err)
+			return nil, err
+		}
+	}
+
+	return &protosv1.GetUserResponse{
+		User: u.ToProtosModel(),
+	}, nil
+}
+
 func (uc *UserController) GetUsers(conn *gorm.DB) (*protosv1.GetUsersResponse, error) {
 	u := []db.Users{}
 	pu := []*protosv1.User{}
@@ -128,23 +144,4 @@ func (uc *UserController) GetUsers(conn *gorm.DB) (*protosv1.GetUsersResponse, e
 	return &protosv1.GetUsersResponse{
 		Users: pu,
 	}, nil
-}
-
-func (uc *UserController) CheckVerifyTotp(conn *gorm.DB, firebase_id string) (string, error) {
-	u := db.Users{}
-
-	if err := conn.First(&u, "firebase_id = ?", firebase_id).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return "", fmt.Errorf("user having this firebase_id is not found")
-		} else {
-			log.Println(err)
-			return "", err
-		}
-	}
-
-	if !u.OtpVerified {
-		return "", fmt.Errorf("totp check failed")
-	}
-
-	return u.ID.String(), nil
 }

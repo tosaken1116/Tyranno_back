@@ -7,10 +7,8 @@ import (
 	"nnyd-back/controller"
 	"nnyd-back/db"
 	protosv1 "nnyd-back/pb/schemas/protos/v1"
-	"time"
 
 	"connectrpc.com/connect"
-	"github.com/dgrijalva/jwt-go"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -35,36 +33,6 @@ func (us *UserServer) CreateUser(ctx context.Context, req *connect.Request[proto
 	}
 
 	return connect.NewResponse(userResp), nil
-}
-
-func (us *UserServer) Signin(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[protosv1.SigninResponse], error) {
-	firebase_id := ctx.Value(config.FIREBASE_ID).(string)
-	if firebase_id == "" {
-		return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("verifying failed"))
-	}
-	conn := db.GetDB()
-	uc := &controller.UserController{}
-	user_id, err := uc.CheckVerifyTotp(conn, firebase_id)
-	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
-	}
-
-	claims := jwt.MapClaims{
-		"user_id": user_id,
-		"exp":     time.Now().Add(3000 * time.Minute).Unix(),
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	accessToken, err := token.SignedString([]byte(config.JST_SECRET_KEY))
-	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
-	}
-
-	resp := &protosv1.SigninResponse{
-		Token: accessToken,
-	}
-	return connect.NewResponse(resp), nil
 }
 
 func (us *UserServer) UpdateUser(ctx context.Context, req *connect.Request[protosv1.UpdateUserRequest]) (*connect.Response[protosv1.UpdateUserResponse], error) {
@@ -114,6 +82,22 @@ func (us *UserServer) GetUser(ctx context.Context, req *connect.Request[protosv1
 	return connect.NewResponse(resultResp), nil
 }
 
+func (us *UserServer) GetMe(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[protosv1.GetUserResponse], error) {
+	user_id := ctx.Value(config.USER_ID).(string)
+	if user_id == "" {
+		return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("verifying failed"))
+	}
+
+	conn := db.GetDB()
+	uc := &controller.UserController{}
+	resultResp, err := uc.GetUserById(conn, user_id)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("db error"))
+	}
+
+	return connect.NewResponse(resultResp), nil
+}
+
 func (us *UserServer) GetUsers(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[protosv1.GetUsersResponse], error) {
 	conn := db.GetDB()
 	uc := &controller.UserController{}
@@ -138,4 +122,20 @@ func (us *UserServer) CheckDisplayName(ctx context.Context, req *connect.Request
 	}
 
 	return connect.NewResponse(resultResp), nil
+}
+
+func (us *UserServer) FollowUser(context.Context, *connect.Request[protosv1.FollowUserRequest]) (*connect.Response[protosv1.FollowUserResponse], error) {
+	// mock
+	resp := &protosv1.FollowUserResponse{
+		User: nil,
+	}
+	return connect.NewResponse(resp), nil
+}
+
+func (us *UserServer) UnfollowUser(context.Context, *connect.Request[protosv1.UnfollowUserRequest]) (*connect.Response[protosv1.UnfollowUserResponse], error) {
+	// mock
+	resp := &protosv1.UnfollowUserResponse{
+		User: nil,
+	}
+	return connect.NewResponse(resp), nil
 }
