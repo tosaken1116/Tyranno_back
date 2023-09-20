@@ -16,10 +16,6 @@ type UserServer struct{}
 
 func (us *UserServer) CreateUser(ctx context.Context, req *connect.Request[protosv1.CreateUserRequest]) (*connect.Response[protosv1.CreateUserResponse], error) {
 	firebase_id := ctx.Value(config.FIREBASE_ID).(string)
-	if firebase_id == "" {
-		return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("verifying failed"))
-	}
-
 	if req.Msg.DisplayId == "" || req.Msg.Name == "" || req.Msg.Icon == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("display_id, name and icon is required"))
 	}
@@ -37,10 +33,6 @@ func (us *UserServer) CreateUser(ctx context.Context, req *connect.Request[proto
 
 func (us *UserServer) UpdateUser(ctx context.Context, req *connect.Request[protosv1.UpdateUserRequest]) (*connect.Response[protosv1.UpdateUserResponse], error) {
 	user_id := ctx.Value(config.USER_ID).(string)
-	if user_id == "" {
-		return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("verifying failed"))
-	}
-
 	if req.Msg.DisplayId == "" || req.Msg.Name == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("display_id and name is required"))
 	}
@@ -57,10 +49,6 @@ func (us *UserServer) UpdateUser(ctx context.Context, req *connect.Request[proto
 
 func (us *UserServer) DeleteUser(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[protosv1.DeleteUserResponse], error) {
 	user_id := ctx.Value(config.USER_ID).(string)
-	if user_id == "" {
-		return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("verifying failed"))
-	}
-
 	conn := db.GetDB()
 	uc := &controller.UserController{}
 	resultResp, err := uc.DeleteUser(conn, user_id)
@@ -84,10 +72,6 @@ func (us *UserServer) GetUser(ctx context.Context, req *connect.Request[protosv1
 
 func (us *UserServer) GetMe(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[protosv1.GetUserResponse], error) {
 	user_id := ctx.Value(config.USER_ID).(string)
-	if user_id == "" {
-		return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("verifying failed"))
-	}
-
 	conn := db.GetDB()
 	uc := &controller.UserController{}
 	resultResp, err := uc.GetUserById(conn, user_id)

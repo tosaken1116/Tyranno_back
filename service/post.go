@@ -12,6 +12,10 @@ import (
 	"connectrpc.com/connect"
 )
 
+var (
+	pc = &controller.PostController{}
+)
+
 type PostServer struct{}
 
 func (ps *PostServer) CreatePost(ctx context.Context, req *connect.Request[protosv1.CreatePostRequest]) (*connect.Response[protosv1.CreatePostResponse], error) {
@@ -24,8 +28,7 @@ func (ps *PostServer) CreatePost(ctx context.Context, req *connect.Request[proto
 	}
 
 	conn := db.GetDB()
-	uc := &controller.PostController{}
-	resp, err := uc.CreatePostController(conn, req.Msg, user_id)
+	resp, err := pc.CreatePost(conn, req.Msg, user_id)
 	if err != nil {
 		log.Println(err)
 		return nil, connect.NewError(connect.CodeInternal, err)
@@ -35,18 +38,24 @@ func (ps *PostServer) CreatePost(ctx context.Context, req *connect.Request[proto
 }
 
 func (ps *PostServer) GetPost(ctx context.Context, req *connect.Request[protosv1.GetPostRequest]) (*connect.Response[protosv1.GetPostResponse], error) {
-	// mock
-	resp := &protosv1.GetPostResponse{
-		Post: nil,
+	conn := db.GetDB()
+	resp, err := pc.GetPostByID(conn, req.Msg.Id)
+	if err != nil {
+		log.Println(err)
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
+
 	return connect.NewResponse(resp), nil
 }
 
 func (ps *PostServer) GetPosts(ctx context.Context, req *connect.Request[protosv1.GetPostsRequest]) (*connect.Response[protosv1.GetPostsResponse], error) {
-	// mock
-	resp := &protosv1.GetPostsResponse{
-		Posts: []*protosv1.Post{},
+	conn := db.GetDB()
+	resp, err := pc.GetPosts(conn)
+	if err != nil {
+		log.Println(err)
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
+
 	return connect.NewResponse(resp), nil
 }
 
