@@ -11,8 +11,7 @@ import (
 )
 
 var (
-	db  *gorm.DB
-	err error
+	db *gorm.DB
 )
 
 // Init is initialize db from main function
@@ -53,7 +52,7 @@ func Close() (err error) {
 }
 
 func AutoMigration() (err error) {
-	if err = db.AutoMigrate(&Users{}); err != nil {
+	if err = db.AutoMigrate(&Users{}, &Posts{}, &Favorites{}); err != nil {
 		log.Fatal(err)
 		return err
 	}
