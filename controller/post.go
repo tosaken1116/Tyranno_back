@@ -66,7 +66,7 @@ func (pc *PostController) CreatePost(conn *gorm.DB, msg *protosv1.CreatePostRequ
 	return postResponse, nil
 }
 
-func (pc *PostController) GetPostByID(conn *gorm.DB, post_id int64) (*protosv1.GetPostResponse, error) {
+func (pc *PostController) GetPostByID(conn *gorm.DB, post_id int32) (*protosv1.GetPostResponse, error) {
 	p := db.Posts{}
 	if err := conn.Find(&p, "id = ? and is_delete = false", post_id).Error; err != nil {
 		log.Println(err)
@@ -109,7 +109,7 @@ func (pc *PostController) GetPosts(conn *gorm.DB) (*protosv1.GetPostsResponse, e
 	return postResponse, nil
 }
 
-func (pc *PostController) DeletePost(conn *gorm.DB, post_id int64) (*protosv1.DeletePostResponse, error) {
+func (pc *PostController) DeletePost(conn *gorm.DB, post_id int32) (*protosv1.DeletePostResponse, error) {
 	p := db.Posts{}
 
 	if err := conn.Find(&p, "id = ? and is_delete = false", post_id).Error; err != nil {
@@ -128,7 +128,7 @@ func (pc *PostController) DeletePost(conn *gorm.DB, post_id int64) (*protosv1.De
 	}, nil
 }
 
-func (pc *PostController) GetReplies(conn *gorm.DB, post_id int64) (*protosv1.GetRepliesResponse, error) {
+func (pc *PostController) GetReplies(conn *gorm.DB, post_id int32) (*protosv1.GetRepliesResponse, error) {
 	p := []db.Posts{}
 	if err := conn.Find(&p, "reply_at = ? and is_delete = false", post_id).Error; err != nil {
 		log.Println(err)
