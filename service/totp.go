@@ -19,7 +19,7 @@ func (ps *TotpServer) GenerateTotpKey(ctx context.Context, req *connect.Request[
 	resp, err := uc.GenerateTotpKeyController(conn, req.Msg)
 	if err != nil {
 		log.Println(err)
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("Failed generate totp secret."))
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed generate totp secret"))
 	}
 	return connect.NewResponse(resp), nil
 }
@@ -31,7 +31,7 @@ func (ps *TotpServer) VerifyTotp(ctx context.Context, req *connect.Request[proto
 
 	if err != nil {
 		log.Println(err)
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("Failed token verify"))
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed token verify"))
 	}
 
 	return connect.NewResponse(resp), nil
@@ -45,7 +45,7 @@ func (ps *TotpServer) ValidateTotp(ctx context.Context, req *connect.Request[pro
 
 	if err != nil {
 		log.Println(err)
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("Failed token verify"))
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed token verify"))
 	}
 
 	return connect.NewResponse(resp), nil
