@@ -8,7 +8,6 @@ import (
 	protosv1 "nnyd-back/pb/schemas/protos/v1"
 	"time"
 
-	"connectrpc.com/connect"
 	"github.com/pquerna/otp"
 	"github.com/pquerna/otp/totp"
 	"gorm.io/gorm"
@@ -20,16 +19,14 @@ func (uc *TotpController) GenerateTotpKeyController(conn *gorm.DB, msg *protosv1
 	u := db.Users{}
 
 	if err := conn.First(&u, "firebase_id = ?", msg.FirebaseId).Error; err != nil {
-		resp := connect.NewError(connect.CodeInternal, err)
 		log.Println(err)
-		return nil, resp
+		return nil, err
 	}
 
 	if u.OtpSecret != "" || u.OtpUrl != "" {
-		msg := "Already set up a Secret."
-		resp := connect.NewError(connect.CodeFailedPrecondition, fmt.Errorf(msg))
-		log.Println(msg)
-		return nil, resp
+		err := fmt.Errorf("already set up a Secret")
+		log.Println(err)
+		return nil, err
 	}
 
 	key, err := totp.Generate(totp.GenerateOpts{
@@ -39,9 +36,8 @@ func (uc *TotpController) GenerateTotpKeyController(conn *gorm.DB, msg *protosv1
 	})
 
 	if err != nil {
-		resp := connect.NewError(connect.CodeInternal, err)
 		log.Println(err)
-		return nil, resp
+		return nil, err
 	}
 
 	userDataToUpdate := db.Users{
@@ -68,15 +64,14 @@ func (uc *TotpController) VerifyTotpController(conn *gorm.DB, msg *protosv1.Veri
 	u := db.Users{}
 
 	if err := conn.First(&u, "firebase_id = ?", msg.FirebaseId).Error; err != nil {
-		resp := connect.NewError(connect.CodeInternal, err)
 		log.Println(err)
-		return nil, resp
+		return nil, err
 	}
 
 	if u.OtpSecret == "" && u.OtpUrl == "" {
-		resp := connect.NewError(connect.CodeFailedPrecondition, fmt.Errorf("Otp secret is not set."))
-		log.Println("Failed verify otp token.")
-		return nil, resp
+		err := fmt.Errorf("otp secret is not set")
+		log.Println(err)
+		return nil, err
 	}
 
 	valid, err := totp.ValidateCustom(msg.Token, u.OtpSecret, time.Now(), totp.ValidateOpts{
@@ -87,15 +82,14 @@ func (uc *TotpController) VerifyTotpController(conn *gorm.DB, msg *protosv1.Veri
 	})
 
 	if err != nil {
-		resp := connect.NewError(connect.CodeInternal, err)
 		log.Println(err)
-		return nil, resp
+		return nil, err
 	}
 
 	if !valid {
-		resp := connect.NewError(connect.CodeInternal, fmt.Errorf("Failed verify otp token."))
-		log.Println("Failed verify otp token.")
-		return nil, resp
+		err := fmt.Errorf("failed verify otp token")
+		log.Println(err)
+		return nil, err
 	}
 
 	userDataToUpdate := db.Users{
@@ -118,15 +112,14 @@ func (uc *TotpController) ValidateTotpController(conn *gorm.DB, msg *protosv1.Va
 	u := db.Users{}
 
 	if err := conn.First(&u, "firebase_id = ?", msg.FirebaseId).Error; err != nil {
-		resp := connect.NewError(connect.CodeInternal, err)
 		log.Println(err)
-		return nil, resp
+		return nil, err
 	}
 
 	if u.OtpSecret == "" && u.OtpUrl == "" {
-		resp := connect.NewError(connect.CodeFailedPrecondition, fmt.Errorf("Otp secret is not set."))
-		log.Println("Failed verify otp token.")
-		return nil, resp
+		err := fmt.Errorf("otp secret is not set")
+		log.Println(err)
+		return nil, err
 	}
 
 	valid, err := totp.ValidateCustom(msg.Token, u.OtpSecret, time.Now(), totp.ValidateOpts{
@@ -137,15 +130,14 @@ func (uc *TotpController) ValidateTotpController(conn *gorm.DB, msg *protosv1.Va
 	})
 
 	if err != nil {
-		resp := connect.NewError(connect.CodeInternal, err)
 		log.Println(err)
-		return nil, resp
+		return nil, err
 	}
 
 	if !valid {
-		resp := connect.NewError(connect.CodeInternal, fmt.Errorf("Failed verify otp token."))
-		log.Println("Failed verify otp token.")
-		return nil, resp
+		err := fmt.Errorf("failed verify otp token")
+		log.Println(err)
+		return nil, err
 	}
 
 	log.Println("Success totp verify.")
