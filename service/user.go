@@ -13,7 +13,8 @@ import (
 )
 
 var (
-	uc = &controller.UserController{}
+	uc  = &controller.UserController{}
+	foc = &controller.FollowController{}
 )
 
 type UserServer struct{}
@@ -117,23 +118,41 @@ func (us *UserServer) CheckDisplayName(ctx context.Context, req *connect.Request
 	return connect.NewResponse(resultResp), nil
 }
 
-func (us *UserServer) FollowUser(context.Context, *connect.Request[protosv1.FollowUserRequest]) (*connect.Response[protosv1.FollowUserResponse], error) {
-	// TODO: mock
-	resp := &protosv1.FollowUserResponse{
-		User: nil,
+func (us *UserServer) FollowUser(ctx context.Context, req *connect.Request[protosv1.FollowUserRequest]) (*connect.Response[protosv1.FollowUserResponse], error) {
+	user_id := ctx.Value(config.USER_ID).(string)
+	conn := db.GetDB()
+	if _, err := uc.GetUserById(conn, user_id); err != nil {
+		return nil, connect.NewError(connect.CodeUnauthenticated, err)
+	}
+	if _, err := uc.GetUserById(conn, req.Msg.DisplayId); err != nil {
+		return nil, connect.NewError(connect.CodeUnauthenticated, err)
+	}
+
+	resp, err := foc.FollowUser(conn, user_id, req.Msg.DisplayId)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 	return connect.NewResponse(resp), nil
 }
 
-func (us *UserServer) UnfollowUser(context.Context, *connect.Request[protosv1.UnfollowUserRequest]) (*connect.Response[protosv1.UnfollowUserResponse], error) {
-	// TODO: mock
-	resp := &protosv1.UnfollowUserResponse{
-		User: nil,
+func (us *UserServer) UnfollowUser(ctx context.Context, req *connect.Request[protosv1.UnfollowUserRequest]) (*connect.Response[protosv1.UnfollowUserResponse], error) {
+	user_id := ctx.Value(config.USER_ID).(string)
+	conn := db.GetDB()
+	if _, err := uc.GetUserById(conn, user_id); err != nil {
+		return nil, connect.NewError(connect.CodeUnauthenticated, err)
+	}
+	if _, err := uc.GetUserById(conn, req.Msg.DisplayId); err != nil {
+		return nil, connect.NewError(connect.CodeUnauthenticated, err)
+	}
+
+	resp, err := foc.UnfollowUser(conn, user_id, req.Msg.DisplayId)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 	return connect.NewResponse(resp), nil
 }
 
-func (us *UserServer) GetFollowByID(context.Context, *connect.Request[protosv1.GetUserRequest]) (*connect.Response[protosv1.GetUsersResponse], error) {
+func (us *UserServer) GetFollowByID(ctx context.Context, req *connect.Request[protosv1.GetUserRequest]) (*connect.Response[protosv1.GetUsersResponse], error) {
 	// TODO: mock
 	resp := &protosv1.GetUsersResponse{
 		Users: []*protosv1.User{},
@@ -141,7 +160,7 @@ func (us *UserServer) GetFollowByID(context.Context, *connect.Request[protosv1.G
 	return connect.NewResponse(resp), nil
 }
 
-func (us *UserServer) GetFollowerByID(context.Context, *connect.Request[protosv1.GetUserRequest]) (*connect.Response[protosv1.GetUsersResponse], error) {
+func (us *UserServer) GetFollowerByID(ctx context.Context, req *connect.Request[protosv1.GetUserRequest]) (*connect.Response[protosv1.GetUsersResponse], error) {
 	// TODO: mock
 	resp := &protosv1.GetUsersResponse{
 		Users: []*protosv1.User{},
@@ -149,7 +168,7 @@ func (us *UserServer) GetFollowerByID(context.Context, *connect.Request[protosv1
 	return connect.NewResponse(resp), nil
 }
 
-func (us *UserServer) GetMyFollow(context.Context, *connect.Request[protosv1.GetUserRequest]) (*connect.Response[protosv1.GetUsersResponse], error) {
+func (us *UserServer) GetMyFollow(ctx context.Context, req *connect.Request[protosv1.GetUserRequest]) (*connect.Response[protosv1.GetUsersResponse], error) {
 	// TODO: mock
 	resp := &protosv1.GetUsersResponse{
 		Users: []*protosv1.User{},
@@ -157,7 +176,7 @@ func (us *UserServer) GetMyFollow(context.Context, *connect.Request[protosv1.Get
 	return connect.NewResponse(resp), nil
 }
 
-func (us *UserServer) GetMyFollower(context.Context, *connect.Request[protosv1.GetUserRequest]) (*connect.Response[protosv1.GetUsersResponse], error) {
+func (us *UserServer) GetMyFollower(ctx context.Context, req *connect.Request[protosv1.GetUserRequest]) (*connect.Response[protosv1.GetUsersResponse], error) {
 	// TODO: mock
 	resp := &protosv1.GetUsersResponse{
 		Users: []*protosv1.User{},
