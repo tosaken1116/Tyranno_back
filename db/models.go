@@ -14,10 +14,14 @@ func (base *Base) BeforeCreate(tx *gorm.DB) (err error) {
 	return
 }
 
-type Base struct {
-	ID        uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
+type DateTime struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+}
+
+type Base struct {
+	DateTime
+	ID uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
 }
 
 type Users struct {
@@ -50,13 +54,12 @@ func (u *Users) ToProtosModel() *protosv1.User {
 }
 
 type Posts struct {
+	DateTime
 	ID             int64     `gorm:"primaryKey" json:"id"`
 	Text           string    `gorm:"not null" json:"text"`
 	UserID         uuid.UUID `json:"user_id"`
 	ReplyAt        *int64    `gorm:"default:null" json:"reply_at"`
 	PublishedAt    time.Time `json:"published_at"`
-	CreatedAt      time.Time `json:"created_at"`
-	UpdatedAt      time.Time `json:"updated_at"`
 	FavoriteNumber int32     `json:"favorite_number"`
 	ReplyNumber    int32     `json:"reply_number"`
 	IsDelete       bool      `gorm:"not null default:false" json:"is_delete"`
@@ -79,7 +82,7 @@ func (p *Posts) ToProtosModel() *protosv1.Post {
 }
 
 type Favorites struct {
-	Base
+	DateTime
 	UserID uuid.UUID `gorm:"primaryKey" json:"user_id"`
 	PostID int32     `gorm:"primaryKey" json:"post_id"`
 }
