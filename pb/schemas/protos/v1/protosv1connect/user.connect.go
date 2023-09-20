@@ -54,6 +54,17 @@ const (
 	// UserServiceUnfollowUserProcedure is the fully-qualified name of the UserService's UnfollowUser
 	// RPC.
 	UserServiceUnfollowUserProcedure = "/schemas.protos.v1.UserService/UnfollowUser"
+	// UserServiceGetFollowByIDProcedure is the fully-qualified name of the UserService's GetFollowByID
+	// RPC.
+	UserServiceGetFollowByIDProcedure = "/schemas.protos.v1.UserService/GetFollowByID"
+	// UserServiceGetFollowerByIDProcedure is the fully-qualified name of the UserService's
+	// GetFollowerByID RPC.
+	UserServiceGetFollowerByIDProcedure = "/schemas.protos.v1.UserService/GetFollowerByID"
+	// UserServiceGetMyFollowProcedure is the fully-qualified name of the UserService's GetMyFollow RPC.
+	UserServiceGetMyFollowProcedure = "/schemas.protos.v1.UserService/GetMyFollow"
+	// UserServiceGetMyFollowerProcedure is the fully-qualified name of the UserService's GetMyFollower
+	// RPC.
+	UserServiceGetMyFollowerProcedure = "/schemas.protos.v1.UserService/GetMyFollower"
 )
 
 // UserServiceClient is a client for the schemas.protos.v1.UserService service.
@@ -67,6 +78,10 @@ type UserServiceClient interface {
 	CheckDisplayName(context.Context, *connect.Request[v1.CheckDisplayNameRequest]) (*connect.Response[v1.CheckDisplayNameResponse], error)
 	FollowUser(context.Context, *connect.Request[v1.FollowUserRequest]) (*connect.Response[v1.FollowUserResponse], error)
 	UnfollowUser(context.Context, *connect.Request[v1.UnfollowUserRequest]) (*connect.Response[v1.UnfollowUserResponse], error)
+	GetFollowByID(context.Context, *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUsersResponse], error)
+	GetFollowerByID(context.Context, *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUsersResponse], error)
+	GetMyFollow(context.Context, *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUsersResponse], error)
+	GetMyFollower(context.Context, *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUsersResponse], error)
 }
 
 // NewUserServiceClient constructs a client for the schemas.protos.v1.UserService service. By
@@ -124,6 +139,26 @@ func NewUserServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			baseURL+UserServiceUnfollowUserProcedure,
 			opts...,
 		),
+		getFollowByID: connect.NewClient[v1.GetUserRequest, v1.GetUsersResponse](
+			httpClient,
+			baseURL+UserServiceGetFollowByIDProcedure,
+			opts...,
+		),
+		getFollowerByID: connect.NewClient[v1.GetUserRequest, v1.GetUsersResponse](
+			httpClient,
+			baseURL+UserServiceGetFollowerByIDProcedure,
+			opts...,
+		),
+		getMyFollow: connect.NewClient[v1.GetUserRequest, v1.GetUsersResponse](
+			httpClient,
+			baseURL+UserServiceGetMyFollowProcedure,
+			opts...,
+		),
+		getMyFollower: connect.NewClient[v1.GetUserRequest, v1.GetUsersResponse](
+			httpClient,
+			baseURL+UserServiceGetMyFollowerProcedure,
+			opts...,
+		),
 	}
 }
 
@@ -138,6 +173,10 @@ type userServiceClient struct {
 	checkDisplayName *connect.Client[v1.CheckDisplayNameRequest, v1.CheckDisplayNameResponse]
 	followUser       *connect.Client[v1.FollowUserRequest, v1.FollowUserResponse]
 	unfollowUser     *connect.Client[v1.UnfollowUserRequest, v1.UnfollowUserResponse]
+	getFollowByID    *connect.Client[v1.GetUserRequest, v1.GetUsersResponse]
+	getFollowerByID  *connect.Client[v1.GetUserRequest, v1.GetUsersResponse]
+	getMyFollow      *connect.Client[v1.GetUserRequest, v1.GetUsersResponse]
+	getMyFollower    *connect.Client[v1.GetUserRequest, v1.GetUsersResponse]
 }
 
 // CreateUser calls schemas.protos.v1.UserService.CreateUser.
@@ -185,6 +224,26 @@ func (c *userServiceClient) UnfollowUser(ctx context.Context, req *connect.Reque
 	return c.unfollowUser.CallUnary(ctx, req)
 }
 
+// GetFollowByID calls schemas.protos.v1.UserService.GetFollowByID.
+func (c *userServiceClient) GetFollowByID(ctx context.Context, req *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUsersResponse], error) {
+	return c.getFollowByID.CallUnary(ctx, req)
+}
+
+// GetFollowerByID calls schemas.protos.v1.UserService.GetFollowerByID.
+func (c *userServiceClient) GetFollowerByID(ctx context.Context, req *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUsersResponse], error) {
+	return c.getFollowerByID.CallUnary(ctx, req)
+}
+
+// GetMyFollow calls schemas.protos.v1.UserService.GetMyFollow.
+func (c *userServiceClient) GetMyFollow(ctx context.Context, req *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUsersResponse], error) {
+	return c.getMyFollow.CallUnary(ctx, req)
+}
+
+// GetMyFollower calls schemas.protos.v1.UserService.GetMyFollower.
+func (c *userServiceClient) GetMyFollower(ctx context.Context, req *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUsersResponse], error) {
+	return c.getMyFollower.CallUnary(ctx, req)
+}
+
 // UserServiceHandler is an implementation of the schemas.protos.v1.UserService service.
 type UserServiceHandler interface {
 	CreateUser(context.Context, *connect.Request[v1.CreateUserRequest]) (*connect.Response[v1.CreateUserResponse], error)
@@ -196,6 +255,10 @@ type UserServiceHandler interface {
 	CheckDisplayName(context.Context, *connect.Request[v1.CheckDisplayNameRequest]) (*connect.Response[v1.CheckDisplayNameResponse], error)
 	FollowUser(context.Context, *connect.Request[v1.FollowUserRequest]) (*connect.Response[v1.FollowUserResponse], error)
 	UnfollowUser(context.Context, *connect.Request[v1.UnfollowUserRequest]) (*connect.Response[v1.UnfollowUserResponse], error)
+	GetFollowByID(context.Context, *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUsersResponse], error)
+	GetFollowerByID(context.Context, *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUsersResponse], error)
+	GetMyFollow(context.Context, *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUsersResponse], error)
+	GetMyFollower(context.Context, *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUsersResponse], error)
 }
 
 // NewUserServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -249,6 +312,26 @@ func NewUserServiceHandler(svc UserServiceHandler, opts ...connect.HandlerOption
 		svc.UnfollowUser,
 		opts...,
 	)
+	userServiceGetFollowByIDHandler := connect.NewUnaryHandler(
+		UserServiceGetFollowByIDProcedure,
+		svc.GetFollowByID,
+		opts...,
+	)
+	userServiceGetFollowerByIDHandler := connect.NewUnaryHandler(
+		UserServiceGetFollowerByIDProcedure,
+		svc.GetFollowerByID,
+		opts...,
+	)
+	userServiceGetMyFollowHandler := connect.NewUnaryHandler(
+		UserServiceGetMyFollowProcedure,
+		svc.GetMyFollow,
+		opts...,
+	)
+	userServiceGetMyFollowerHandler := connect.NewUnaryHandler(
+		UserServiceGetMyFollowerProcedure,
+		svc.GetMyFollower,
+		opts...,
+	)
 	return "/schemas.protos.v1.UserService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case UserServiceCreateUserProcedure:
@@ -269,6 +352,14 @@ func NewUserServiceHandler(svc UserServiceHandler, opts ...connect.HandlerOption
 			userServiceFollowUserHandler.ServeHTTP(w, r)
 		case UserServiceUnfollowUserProcedure:
 			userServiceUnfollowUserHandler.ServeHTTP(w, r)
+		case UserServiceGetFollowByIDProcedure:
+			userServiceGetFollowByIDHandler.ServeHTTP(w, r)
+		case UserServiceGetFollowerByIDProcedure:
+			userServiceGetFollowerByIDHandler.ServeHTTP(w, r)
+		case UserServiceGetMyFollowProcedure:
+			userServiceGetMyFollowHandler.ServeHTTP(w, r)
+		case UserServiceGetMyFollowerProcedure:
+			userServiceGetMyFollowerHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -312,4 +403,20 @@ func (UnimplementedUserServiceHandler) FollowUser(context.Context, *connect.Requ
 
 func (UnimplementedUserServiceHandler) UnfollowUser(context.Context, *connect.Request[v1.UnfollowUserRequest]) (*connect.Response[v1.UnfollowUserResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("schemas.protos.v1.UserService.UnfollowUser is not implemented"))
+}
+
+func (UnimplementedUserServiceHandler) GetFollowByID(context.Context, *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUsersResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("schemas.protos.v1.UserService.GetFollowByID is not implemented"))
+}
+
+func (UnimplementedUserServiceHandler) GetFollowerByID(context.Context, *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUsersResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("schemas.protos.v1.UserService.GetFollowerByID is not implemented"))
+}
+
+func (UnimplementedUserServiceHandler) GetMyFollow(context.Context, *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUsersResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("schemas.protos.v1.UserService.GetMyFollow is not implemented"))
+}
+
+func (UnimplementedUserServiceHandler) GetMyFollower(context.Context, *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUsersResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("schemas.protos.v1.UserService.GetMyFollower is not implemented"))
 }

@@ -33,7 +33,7 @@ func (uc *UserController) CreateUser(conn *gorm.DB, msg *protosv1.CreateUserRequ
 func (uc *UserController) UpdateUser(conn *gorm.DB, id string, msg *protosv1.UpdateUserRequest) (*protosv1.UpdateUserResponse, error) {
 	u := db.Users{}
 
-	if err := conn.First(&u, "id = ?", id).Error; err != nil {
+	if err := conn.First(&u, "id = ? and is_delete = false", id).Error; err != nil {
 		log.Println(err)
 		return nil, err
 	}
@@ -56,15 +56,12 @@ func (uc *UserController) UpdateUser(conn *gorm.DB, id string, msg *protosv1.Upd
 func (uc *UserController) DeleteUser(conn *gorm.DB, id string) (*protosv1.DeleteUserResponse, error) {
 	u := db.Users{}
 
-	if err := conn.First(&u, "id = ?", id).Error; err != nil {
+	if err := conn.First(&u, "id = ? and is_delete = false", id).Error; err != nil {
 		log.Println(err)
 		return nil, err
 	}
 
-	if err := conn.Delete(&u).Error; err != nil {
-		log.Println(err)
-		return nil, err
-	}
+	u.IsDelete = true
 
 	return &protosv1.DeleteUserResponse{
 		Status: true,
@@ -74,7 +71,7 @@ func (uc *UserController) DeleteUser(conn *gorm.DB, id string) (*protosv1.Delete
 func (uc *UserController) CheckDisplayId(conn *gorm.DB, display_id string) (*protosv1.CheckDisplayNameResponse, error) {
 	u := db.Users{}
 
-	if err := conn.First(&u, "display_id = ?", display_id).Error; err != nil {
+	if err := conn.First(&u, "display_id = ? and is_delete = false", display_id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &protosv1.CheckDisplayNameResponse{
 				IsNotExist: true,
@@ -93,7 +90,7 @@ func (uc *UserController) CheckDisplayId(conn *gorm.DB, display_id string) (*pro
 func (uc *UserController) GetUser(conn *gorm.DB, display_id string) (*protosv1.GetUserResponse, error) {
 	u := db.Users{}
 
-	if err := conn.First(&u, "display_id = ?", display_id).Error; err != nil {
+	if err := conn.First(&u, "display_id = ? and is_delete = false", display_id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &protosv1.GetUserResponse{User: nil}, nil
 		} else {
@@ -110,7 +107,7 @@ func (uc *UserController) GetUser(conn *gorm.DB, display_id string) (*protosv1.G
 func (uc *UserController) GetUserById(conn *gorm.DB, id string) (*protosv1.GetUserResponse, error) {
 	u := db.Users{}
 
-	if err := conn.First(&u, "id = ?", id).Error; err != nil {
+	if err := conn.First(&u, "id = ? and is_delete = false", id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &protosv1.GetUserResponse{User: nil}, nil
 		} else {
@@ -128,7 +125,7 @@ func (uc *UserController) GetUsers(conn *gorm.DB) (*protosv1.GetUsersResponse, e
 	u := []db.Users{}
 	pu := []*protosv1.User{}
 
-	if err := conn.Find(&u).Error; err != nil {
+	if err := conn.Find(&u, "is_delete = false").Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &protosv1.GetUsersResponse{Users: pu}, nil
 		} else {
