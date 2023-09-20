@@ -57,7 +57,7 @@ type Posts struct {
 	DateTime
 	ID             int64     `gorm:"primaryKey" json:"id"`
 	Text           string    `gorm:"not null" json:"text"`
-	UserID         uuid.UUID `json:"user_id"`
+	UserID         uuid.UUID `gorm:"type:uuid" json:"user_id"`
 	ReplyAt        *int64    `gorm:"default:null" json:"reply_at"`
 	PublishedAt    time.Time `json:"published_at"`
 	FavoriteNumber int32     `json:"favorite_number"`
@@ -83,7 +83,7 @@ func (p *Posts) ToProtosModel() *protosv1.Post {
 
 type Favorites struct {
 	DateTime
-	UserID uuid.UUID `gorm:"primaryKey" json:"user_id"`
+	UserID uuid.UUID `gorm:"type:uuid;primaryKey" json:"user_id"`
 	PostID int32     `gorm:"primaryKey" json:"post_id"`
 	User   Users     `gorm:"foreignKey:UserID;reference:ID"`
 	Post   Posts     `gorm:"foreignKey:PostID;reference:ID"`
@@ -91,8 +91,8 @@ type Favorites struct {
 
 type Follows struct {
 	DateTime
-	FromUserID uuid.UUID `gorm:"primaryKey" json:"from_user_id"`
-	ToUserID   uuid.UUID `gorm:"primaryKey" json:"to_user_id"`
+	FromUserID uuid.UUID `gorm:"type:uuid;primaryKey" json:"from_user_id"`
+	ToUserID   uuid.UUID `gorm:"type:uuid;primaryKey" json:"to_user_id"`
 	FromUser   Users     `gorm:"foreignKey:FromUserID;reference:ID"`
 	ToUser     Users     `gorm:"foreignKey:ToUserID;reference:ID"`
 }
