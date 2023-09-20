@@ -98,7 +98,7 @@ func (fac *FavoriteController) GetFavoritePosts(conn *gorm.DB, user_id string, m
 			log.Println(err)
 			return nil, err
 		}
-		var isFavorited bool = false
+		isFavorited := false
 		if my_user_id != nil {
 			if user_id == *my_user_id {
 				isFavorited = true

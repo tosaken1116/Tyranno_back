@@ -112,16 +112,18 @@ func (pc *PostController) GetPosts(conn *gorm.DB, user_id *string) (*protosv1.Ge
 	posts := []*protosv1.Post{}
 
 	for i := 0; i < len(p); i++ {
-		var err error = nil
+		isFavorited := false
 		if user_id != nil {
-			if err = conn.First(&db.Favorites{}, "user_id = ? and post_id = ?", user_id, p[i].ID).Error; err != nil {
+			if err := conn.First(&db.Favorites{}, "user_id = ? and post_id = ?", user_id, p[i].ID).Error; err != nil {
 				if !errors.Is(err, gorm.ErrRecordNotFound) {
 					log.Println(err)
 					return nil, err
 				}
+			} else {
+				isFavorited = true
 			}
 		}
-		posts = append(posts, p[i].ToProtosModel(user_id != nil && err == nil))
+		posts = append(posts, p[i].ToProtosModel(isFavorited))
 	}
 
 	postResponse := &protosv1.GetPostsResponse{
@@ -165,16 +167,18 @@ func (pc *PostController) GetReplies(conn *gorm.DB, post_id int32, user_id *stri
 	posts := []*protosv1.Post{}
 
 	for i := 0; i < len(p); i++ {
-		var err error = nil
+		isFavorited := false
 		if user_id != nil {
-			if err = conn.First(&db.Favorites{}, "user_id = ? and post_id = ?", user_id, p[i].ID).Error; err != nil {
+			if err := conn.First(&db.Favorites{}, "user_id = ? and post_id = ?", user_id, p[i].ID).Error; err != nil {
 				if !errors.Is(err, gorm.ErrRecordNotFound) {
 					log.Println(err)
 					return nil, err
 				}
+			} else {
+				isFavorited = true
 			}
 		}
-		posts = append(posts, p[i].ToProtosModel(user_id != nil && err == nil))
+		posts = append(posts, p[i].ToProtosModel(isFavorited))
 	}
 
 	postResponse := &protosv1.GetRepliesResponse{
