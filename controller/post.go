@@ -30,8 +30,10 @@ func (pc *PostController) CreatePost(conn *gorm.DB, msg *protosv1.CreatePostRequ
 	if msg.ReplyAt != nil {
 		reply := db.Posts{}
 		if err := conn.First(&reply, "id = ? and is_delete = false", msg.ReplyAt).Error; err != nil {
-			reply.ReplyNumber = reply.ReplyNumber + 1
+			log.Println(err)
+			return nil, err
 		}
+		reply.ReplyNumber = reply.ReplyNumber + 1
 		if err := conn.Save(&reply).Error; err != nil {
 			log.Println(err)
 			return nil, err
@@ -102,6 +104,50 @@ func (pc *PostController) GetPosts(conn *gorm.DB) (*protosv1.GetPostsResponse, e
 
 	postResponse := &protosv1.GetPostsResponse{
 		Posts: posts,
+	}
+
+	return postResponse, nil
+}
+
+func (pc *PostController) DeletePost(conn *gorm.DB, post_id int64) (*protosv1.DeletePostResponse, error) {
+	p := db.Posts{}
+
+	if err := conn.Find(&p, "id = ? and is_delete = false", post_id).Error; err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	p.IsDelete = true
+
+	if err := conn.Save(&p).Error; err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	return &protosv1.DeletePostResponse{
+		Status: true,
+	}, nil
+}
+
+func (pc *PostController) GetReplies(conn *gorm.DB, post_id int64) (*protosv1.GetRepliesResponse, error) {
+	p := []db.Posts{}
+	if err := conn.Find(&p, "reply_at = ? and is_delete = false", post_id).Error; err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	for i := 0; i < len(p); i++ {
+		if err := conn.Model(&p[i]).Association("User").Find(&p[i].User); err != nil {
+			log.Println(err)
+			return nil, err
+		}
+	}
+	posts := []*protosv1.Post{}
+
+	for i := 0; i < len(p); i++ {
+		posts = append(posts, p[i].ToProtosModel())
+	}
+
+	postResponse := &protosv1.GetRepliesResponse{
+		Replies: posts,
 	}
 
 	return postResponse, nil

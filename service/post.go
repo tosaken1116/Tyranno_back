@@ -13,19 +13,14 @@ import (
 )
 
 var (
-	pc = &controller.PostController{}
+	pc  = &controller.PostController{}
+	fac = &controller.FavoriteController{}
 )
 
 type PostServer struct{}
 
 func (ps *PostServer) CreatePost(ctx context.Context, req *connect.Request[protosv1.CreatePostRequest]) (*connect.Response[protosv1.CreatePostResponse], error) {
 	user_id := ctx.Value(config.USER_ID).(string)
-
-	if user_id == "" {
-		err := fmt.Errorf("unauthenticated")
-		log.Println(err)
-		return nil, connect.NewError(connect.CodeUnauthenticated, err)
-	}
 
 	conn := db.GetDB()
 	if _, err := uc.GetUserById(conn, user_id); err != nil {
@@ -64,33 +59,80 @@ func (ps *PostServer) GetPosts(ctx context.Context, req *connect.Request[protosv
 }
 
 func (ps *PostServer) DeletePost(ctx context.Context, req *connect.Request[protosv1.DeletePostRequest]) (*connect.Response[protosv1.DeletePostResponse], error) {
-	// TODO: mock
-	resp := &protosv1.DeletePostResponse{
-		Status: true,
+	user_id := ctx.Value(config.USER_ID).(string)
+
+	conn := db.GetDB()
+	userResp, err := uc.GetUserById(conn, user_id)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeUnauthenticated, err)
 	}
+
+	postResp, err := pc.GetPostByID(conn, req.Msg.Id)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeNotFound, err)
+	}
+	if postResp.Post.User.DisplayId != userResp.User.DisplayId {
+		return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("only delete your post"))
+	}
+
+	resp, err := pc.DeletePost(conn, req.Msg.Id)
+	if err != nil {
+		log.Println(err)
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
 	return connect.NewResponse(resp), nil
 }
 
 func (ps *PostServer) GetReplies(ctx context.Context, req *connect.Request[protosv1.GetRepliesRequest]) (*connect.Response[protosv1.GetRepliesResponse], error) {
-	// TODO: mock
-	resp := &protosv1.GetRepliesResponse{
-		Replies: []*protosv1.Post{},
+	conn := db.GetDB()
+	if _, err := pc.GetPostByID(conn, req.Msg.ReplyAt); err != nil {
+		return nil, connect.NewError(connect.CodeNotFound, err)
 	}
+
+	resp, err := pc.GetReplies(conn, req.Msg.ReplyAt)
+	if err != nil {
+		log.Println(err)
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
 	return connect.NewResponse(resp), nil
 }
 
 func (ps *PostServer) CreateFavorite(ctx context.Context, req *connect.Request[protosv1.CreateFavoriteRequest]) (*connect.Response[protosv1.CreateFavoriteResponse], error) {
-	// TODO: mock
-	resp := &protosv1.CreateFavoriteResponse{
-		Status: true,
+	user_id := ctx.Value(config.USER_ID).(string)
+
+	conn := db.GetDB()
+	if _, err := uc.GetUserById(conn, user_id); err != nil {
+		return nil, connect.NewError(connect.CodeUnauthenticated, err)
+	}
+	if _, err := pc.GetPostByID(conn, req.Msg.FavoriteAt); err != nil {
+		return nil, connect.NewError(connect.CodeNotFound, err)
+	}
+
+	resp, err := fac.CreateFavorite(conn, user_id, req.Msg.FavoriteAt)
+	if err != nil {
+		log.Println(err)
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 	return connect.NewResponse(resp), nil
 }
 
 func (ps *PostServer) DeleteFavorite(ctx context.Context, req *connect.Request[protosv1.DeleteFavoriteRequest]) (*connect.Response[protosv1.DeleteFavoriteResponse], error) {
-	// TODO: mock
-	resp := &protosv1.DeleteFavoriteResponse{
-		Status: true,
+	user_id := ctx.Value(config.USER_ID).(string)
+
+	conn := db.GetDB()
+	if _, err := uc.GetUserById(conn, user_id); err != nil {
+		return nil, connect.NewError(connect.CodeUnauthenticated, err)
+	}
+	if _, err := pc.GetPostByID(conn, req.Msg.FavoriteAt); err != nil {
+		return nil, connect.NewError(connect.CodeNotFound, err)
+	}
+
+	resp, err := fac.DeleteFavorite(conn, user_id, req.Msg.FavoriteAt)
+	if err != nil {
+		log.Println(err)
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 	return connect.NewResponse(resp), nil
 }
