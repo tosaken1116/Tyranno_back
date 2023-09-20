@@ -63,6 +63,11 @@ func (uc *UserController) DeleteUser(conn *gorm.DB, id string) (*protosv1.Delete
 
 	u.IsDelete = true
 
+	if err := conn.Save(&u).Error; err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
 	return &protosv1.DeleteUserResponse{
 		Status: true,
 	}, nil

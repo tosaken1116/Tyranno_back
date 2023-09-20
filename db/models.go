@@ -86,3 +86,9 @@ type Favorites struct {
 	UserID uuid.UUID `gorm:"primaryKey" json:"user_id"`
 	PostID int32     `gorm:"primaryKey" json:"post_id"`
 }
+
+type Follows struct {
+	DateTime
+	FromUserID uuid.UUID `gorm:"primaryKey" json:"from_user_id"`
+	ToUserID   uuid.UUID `gorm:"primaryKey" json:"to_user_id"`
+}
