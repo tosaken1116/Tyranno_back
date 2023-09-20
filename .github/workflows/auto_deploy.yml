@@ -34,8 +34,7 @@ jobs:
 
       - name: Create nnyd.json
         run: |
-          touch nnyd.json
-          echo ${{ secrets.NNYD_JSON }} >> nnyd.json
+          echo '${{ secrets.NNYD_JSON }}' > nnyd.json
 
       - id: 'auth'
         name: 'Authenticate to Google Cloud'
