@@ -59,6 +59,7 @@ type Posts struct {
 	UpdatedAt      time.Time `json:"updated_at"`
 	FavoriteNumber int32     `json:"favorite_number"`
 	ReplyNumber    int32     `json:"reply_number"`
+	IsDelete       bool      `gorm:"not null default:false" json:"is_delete"`
 	User           Users     `gorm:"constraint:OnUpdate:SET NULL,OnDelete:SET NULL"`
 	ReplyAtPost    *Posts    `gorm:"foreignKey:ReplyAt;reference:ID"`
 }
