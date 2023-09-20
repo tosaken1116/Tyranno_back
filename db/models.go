@@ -91,4 +91,6 @@ type Follows struct {
 	DateTime
 	FromUserID uuid.UUID `gorm:"primaryKey" json:"from_user_id"`
 	ToUserID   uuid.UUID `gorm:"primaryKey" json:"to_user_id"`
+	FromUser   Users     `gorm:"foreignKey:FromUserID;reference:ID"`
+	ToUser     Users     `gorm:"foreignKey:ToUserID;reference:ID"`
 }

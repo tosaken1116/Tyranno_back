@@ -80,8 +80,8 @@ type UserServiceClient interface {
 	UnfollowUser(context.Context, *connect.Request[v1.UnfollowUserRequest]) (*connect.Response[v1.UnfollowUserResponse], error)
 	GetFollowByID(context.Context, *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUsersResponse], error)
 	GetFollowerByID(context.Context, *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUsersResponse], error)
-	GetMyFollow(context.Context, *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUsersResponse], error)
-	GetMyFollower(context.Context, *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUsersResponse], error)
+	GetMyFollow(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.GetUsersResponse], error)
+	GetMyFollower(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.GetUsersResponse], error)
 }
 
 // NewUserServiceClient constructs a client for the schemas.protos.v1.UserService service. By
@@ -149,12 +149,12 @@ func NewUserServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			baseURL+UserServiceGetFollowerByIDProcedure,
 			opts...,
 		),
-		getMyFollow: connect.NewClient[v1.GetUserRequest, v1.GetUsersResponse](
+		getMyFollow: connect.NewClient[emptypb.Empty, v1.GetUsersResponse](
 			httpClient,
 			baseURL+UserServiceGetMyFollowProcedure,
 			opts...,
 		),
-		getMyFollower: connect.NewClient[v1.GetUserRequest, v1.GetUsersResponse](
+		getMyFollower: connect.NewClient[emptypb.Empty, v1.GetUsersResponse](
 			httpClient,
 			baseURL+UserServiceGetMyFollowerProcedure,
 			opts...,
@@ -175,8 +175,8 @@ type userServiceClient struct {
 	unfollowUser     *connect.Client[v1.UnfollowUserRequest, v1.UnfollowUserResponse]
 	getFollowByID    *connect.Client[v1.GetUserRequest, v1.GetUsersResponse]
 	getFollowerByID  *connect.Client[v1.GetUserRequest, v1.GetUsersResponse]
-	getMyFollow      *connect.Client[v1.GetUserRequest, v1.GetUsersResponse]
-	getMyFollower    *connect.Client[v1.GetUserRequest, v1.GetUsersResponse]
+	getMyFollow      *connect.Client[emptypb.Empty, v1.GetUsersResponse]
+	getMyFollower    *connect.Client[emptypb.Empty, v1.GetUsersResponse]
 }
 
 // CreateUser calls schemas.protos.v1.UserService.CreateUser.
@@ -235,12 +235,12 @@ func (c *userServiceClient) GetFollowerByID(ctx context.Context, req *connect.Re
 }
 
 // GetMyFollow calls schemas.protos.v1.UserService.GetMyFollow.
-func (c *userServiceClient) GetMyFollow(ctx context.Context, req *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUsersResponse], error) {
+func (c *userServiceClient) GetMyFollow(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[v1.GetUsersResponse], error) {
 	return c.getMyFollow.CallUnary(ctx, req)
 }
 
 // GetMyFollower calls schemas.protos.v1.UserService.GetMyFollower.
-func (c *userServiceClient) GetMyFollower(ctx context.Context, req *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUsersResponse], error) {
+func (c *userServiceClient) GetMyFollower(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[v1.GetUsersResponse], error) {
 	return c.getMyFollower.CallUnary(ctx, req)
 }
 
@@ -257,8 +257,8 @@ type UserServiceHandler interface {
 	UnfollowUser(context.Context, *connect.Request[v1.UnfollowUserRequest]) (*connect.Response[v1.UnfollowUserResponse], error)
 	GetFollowByID(context.Context, *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUsersResponse], error)
 	GetFollowerByID(context.Context, *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUsersResponse], error)
-	GetMyFollow(context.Context, *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUsersResponse], error)
-	GetMyFollower(context.Context, *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUsersResponse], error)
+	GetMyFollow(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.GetUsersResponse], error)
+	GetMyFollower(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.GetUsersResponse], error)
 }
 
 // NewUserServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -413,10 +413,10 @@ func (UnimplementedUserServiceHandler) GetFollowerByID(context.Context, *connect
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("schemas.protos.v1.UserService.GetFollowerByID is not implemented"))
 }
 
-func (UnimplementedUserServiceHandler) GetMyFollow(context.Context, *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUsersResponse], error) {
+func (UnimplementedUserServiceHandler) GetMyFollow(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.GetUsersResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("schemas.protos.v1.UserService.GetMyFollow is not implemented"))
 }
 
-func (UnimplementedUserServiceHandler) GetMyFollower(context.Context, *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUsersResponse], error) {
+func (UnimplementedUserServiceHandler) GetMyFollower(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.GetUsersResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("schemas.protos.v1.UserService.GetMyFollower is not implemented"))
 }

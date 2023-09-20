@@ -113,12 +113,8 @@ func (uc *UserController) GetUserById(conn *gorm.DB, id string) (*protosv1.GetUs
 	u := db.Users{}
 
 	if err := conn.First(&u, "id = ? and is_delete = false", id).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return &protosv1.GetUserResponse{User: nil}, nil
-		} else {
-			log.Println(err)
-			return nil, err
-		}
+		log.Println(err)
+		return nil, err
 	}
 
 	return &protosv1.GetUserResponse{
@@ -146,4 +142,13 @@ func (uc *UserController) GetUsers(conn *gorm.DB) (*protosv1.GetUsersResponse, e
 	return &protosv1.GetUsersResponse{
 		Users: pu,
 	}, nil
+}
+
+func (uc *UserController) GetIdFromDisplayId(conn *gorm.DB, display_id string) (string, error) {
+	u := db.Users{}
+	if err := conn.First(&u, "display_id = ? and is_delete = false", display_id).Error; err != nil {
+		log.Println(err)
+		return "", err
+	}
+	return u.ID.String(), nil
 }

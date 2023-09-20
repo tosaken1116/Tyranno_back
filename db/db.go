@@ -52,7 +52,7 @@ func Close() (err error) {
 }
 
 func AutoMigration() (err error) {
-	if err = db.AutoMigrate(&Users{}, &Posts{}, &Favorites{}); err != nil {
+	if err = db.AutoMigrate(&Users{}, &Posts{}, &Favorites{}, &Follows{}); err != nil {
 		log.Fatal(err)
 		return err
 	}
