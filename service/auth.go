@@ -48,7 +48,7 @@ func (as *AuthServer) SignIn(ctx context.Context, req *connect.Request[emptypb.E
 }
 
 func (as *AuthServer) SignOut(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[protosv1.SignOutResponse], error) {
-	// mock
+	// TODOL mock
 	resp := &protosv1.SignOutResponse{
 		Status: true,
 	}

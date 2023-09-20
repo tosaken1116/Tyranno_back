@@ -64,7 +64,7 @@ func (ps *PostServer) GetPosts(ctx context.Context, req *connect.Request[protosv
 }
 
 func (ps *PostServer) DeletePost(ctx context.Context, req *connect.Request[protosv1.DeletePostRequest]) (*connect.Response[protosv1.DeletePostResponse], error) {
-	// mock
+	// TODO: mock
 	resp := &protosv1.DeletePostResponse{
 		Status: true,
 	}
@@ -72,7 +72,7 @@ func (ps *PostServer) DeletePost(ctx context.Context, req *connect.Request[proto
 }
 
 func (ps *PostServer) GetReplies(ctx context.Context, req *connect.Request[protosv1.GetRepliesRequest]) (*connect.Response[protosv1.GetRepliesResponse], error) {
-	// mock
+	// TODO: mock
 	resp := &protosv1.GetRepliesResponse{
 		Replies: []*protosv1.Post{},
 	}
@@ -80,7 +80,7 @@ func (ps *PostServer) GetReplies(ctx context.Context, req *connect.Request[proto
 }
 
 func (ps *PostServer) CreateFavorite(ctx context.Context, req *connect.Request[protosv1.CreateFavoriteRequest]) (*connect.Response[protosv1.CreateFavoriteResponse], error) {
-	// mock
+	// TODO: mock
 	resp := &protosv1.CreateFavoriteResponse{
 		Status: true,
 	}
@@ -88,7 +88,7 @@ func (ps *PostServer) CreateFavorite(ctx context.Context, req *connect.Request[p
 }
 
 func (ps *PostServer) DeleteFavorite(ctx context.Context, req *connect.Request[protosv1.DeleteFavoriteRequest]) (*connect.Response[protosv1.DeleteFavoriteResponse], error) {
-	// mock
+	// TODO: mock
 	resp := &protosv1.DeleteFavoriteResponse{
 		Status: true,
 	}

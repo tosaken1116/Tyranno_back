@@ -118,7 +118,7 @@ func (us *UserServer) CheckDisplayName(ctx context.Context, req *connect.Request
 }
 
 func (us *UserServer) FollowUser(context.Context, *connect.Request[protosv1.FollowUserRequest]) (*connect.Response[protosv1.FollowUserResponse], error) {
-	// mock
+	// TODO: mock
 	resp := &protosv1.FollowUserResponse{
 		User: nil,
 	}
@@ -126,7 +126,7 @@ func (us *UserServer) FollowUser(context.Context, *connect.Request[protosv1.Foll
 }
 
 func (us *UserServer) UnfollowUser(context.Context, *connect.Request[protosv1.UnfollowUserRequest]) (*connect.Response[protosv1.UnfollowUserResponse], error) {
-	// mock
+	// TODO: mock
 	resp := &protosv1.UnfollowUserResponse{
 		User: nil,
 	}
@@ -134,7 +134,7 @@ func (us *UserServer) UnfollowUser(context.Context, *connect.Request[protosv1.Un
 }
 
 func (us *UserServer) GetFollowByID(context.Context, *connect.Request[protosv1.GetUserRequest]) (*connect.Response[protosv1.GetUsersResponse], error) {
-	// mock
+	// TODO: mock
 	resp := &protosv1.GetUsersResponse{
 		Users: []*protosv1.User{},
 	}
@@ -142,7 +142,7 @@ func (us *UserServer) GetFollowByID(context.Context, *connect.Request[protosv1.G
 }
 
 func (us *UserServer) GetFollowerByID(context.Context, *connect.Request[protosv1.GetUserRequest]) (*connect.Response[protosv1.GetUsersResponse], error) {
-	// mock
+	// TODO: mock
 	resp := &protosv1.GetUsersResponse{
 		Users: []*protosv1.User{},
 	}
@@ -150,7 +150,7 @@ func (us *UserServer) GetFollowerByID(context.Context, *connect.Request[protosv1
 }
 
 func (us *UserServer) GetMyFollow(context.Context, *connect.Request[protosv1.GetUserRequest]) (*connect.Response[protosv1.GetUsersResponse], error) {
-	// mock
+	// TODO: mock
 	resp := &protosv1.GetUsersResponse{
 		Users: []*protosv1.User{},
 	}
@@ -158,7 +158,7 @@ func (us *UserServer) GetMyFollow(context.Context, *connect.Request[protosv1.Get
 }
 
 func (us *UserServer) GetMyFollower(context.Context, *connect.Request[protosv1.GetUserRequest]) (*connect.Response[protosv1.GetUsersResponse], error) {
-	// mock
+	// TODO: mock
 	resp := &protosv1.GetUsersResponse{
 		Users: []*protosv1.User{},
 	}
