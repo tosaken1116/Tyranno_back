@@ -139,3 +139,35 @@ func (us *UserServer) UnfollowUser(context.Context, *connect.Request[protosv1.Un
 	}
 	return connect.NewResponse(resp), nil
 }
+
+func (us *UserServer) GetFollowByID(context.Context, *connect.Request[protosv1.GetUserRequest]) (*connect.Response[protosv1.GetUsersResponse], error) {
+	// mock
+	resp := &protosv1.GetUsersResponse{
+		Users: []*protosv1.User{},
+	}
+	return connect.NewResponse(resp), nil
+}
+
+func (us *UserServer) GetFollowerByID(context.Context, *connect.Request[protosv1.GetUserRequest]) (*connect.Response[protosv1.GetUsersResponse], error) {
+	// mock
+	resp := &protosv1.GetUsersResponse{
+		Users: []*protosv1.User{},
+	}
+	return connect.NewResponse(resp), nil
+}
+
+func (us *UserServer) GetMyFollow(context.Context, *connect.Request[protosv1.GetUserRequest]) (*connect.Response[protosv1.GetUsersResponse], error) {
+	// mock
+	resp := &protosv1.GetUsersResponse{
+		Users: []*protosv1.User{},
+	}
+	return connect.NewResponse(resp), nil
+}
+
+func (us *UserServer) GetMyFollower(context.Context, *connect.Request[protosv1.GetUserRequest]) (*connect.Response[protosv1.GetUsersResponse], error) {
+	// mock
+	resp := &protosv1.GetUsersResponse{
+		Users: []*protosv1.User{},
+	}
+	return connect.NewResponse(resp), nil
+}

@@ -45,15 +45,29 @@ func (u *Users) ToProtosModel() *protosv1.User {
 }
 
 type Posts struct {
-	ID          int32     `gorm:"primaryKey" json:"id"`
+	ID          int64     `gorm:"primaryKey" json:"id"`
 	Text        string    `gorm:"not null" json:"text"`
 	UserID      uuid.UUID `json:"user_id"`
-	ReplyAt     *int64    `json:"reply_at"`
-	PublishedAt string    `json:"published_at"`
+	ReplyAt     *int64    `gorm:"default:null" json:"reply_at"`
+	PublishedAt time.Time `json:"published_at"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
-	User        Users     `gorm:"foreignKey:UserID constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	ReplyAtPost *Posts    `gorm:"foreignKey:ReplyAt"`
+	User        Users     `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	ReplyAtPost *Posts    `gorm:"foreignKey:ReplyAt;reference:ID"`
+}
+
+func (p *Posts) ToProtosModel(FavoriteNumber int32, ReplyNumber int32) *protosv1.Post {
+	return &protosv1.Post{
+		Id:             p.ID,
+		Text:           p.Text,
+		User:           p.User.ToProtosModel(),
+		FavoriteNumber: FavoriteNumber,
+		ReplyAt:        p.ReplyAt,
+		ReplyNumber:    ReplyNumber,
+		PublishedAt:    p.PublishedAt.Format(time.RFC3339Nano),
+		CreatedAt:      p.CreatedAt.Format(time.RFC3339Nano),
+		UpdatedAt:      p.UpdatedAt.Format(time.RFC3339Nano),
+	}
 }
 
 type Favorites struct {

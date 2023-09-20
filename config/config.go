@@ -11,8 +11,10 @@ import (
 type ContextValueKey string
 
 const (
-	FIREBASE_ID = ContextValueKey("firebase_id")
-	USER_ID     = ContextValueKey("user_id")
+	FIREBASE_ID         = ContextValueKey("firebase_id")
+	USER_ID             = ContextValueKey("user_id")
+	POST_MIN_DELAY_TIME = 10
+	POST_MAX_DELAY_TIME = 3600
 )
 
 var (
