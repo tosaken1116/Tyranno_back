@@ -30,8 +30,10 @@ func (pc *PostController) CreatePost(conn *gorm.DB, msg *protosv1.CreatePostRequ
 	if msg.ReplyAt != nil {
 		reply := db.Posts{}
 		if err := conn.First(&reply, "id = ? and is_delete = false", msg.ReplyAt).Error; err != nil {
-			reply.ReplyNumber = reply.ReplyNumber + 1
+			log.Println(err)
+			return nil, err
 		}
+		reply.ReplyNumber = reply.ReplyNumber + 1
 		if err := conn.Save(&reply).Error; err != nil {
 			log.Println(err)
 			return nil, err
