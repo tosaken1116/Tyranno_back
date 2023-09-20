@@ -8,6 +8,7 @@ import (
 	connect "connectrpc.com/connect"
 	context "context"
 	errors "errors"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	http "net/http"
 	v1 "nnyd-back/pb/schemas/protos/v1"
 	strings "strings"
@@ -49,6 +50,15 @@ const (
 	// PostServiceDeleteFavoriteProcedure is the fully-qualified name of the PostService's
 	// DeleteFavorite RPC.
 	PostServiceDeleteFavoriteProcedure = "/schemas.protos.v1.PostService/DeleteFavorite"
+	// PostServiceGetMyFavoritePostsProcedure is the fully-qualified name of the PostService's
+	// GetMyFavoritePosts RPC.
+	PostServiceGetMyFavoritePostsProcedure = "/schemas.protos.v1.PostService/GetMyFavoritePosts"
+	// PostServiceGetOthersFavoritePostsProcedure is the fully-qualified name of the PostService's
+	// GetOthersFavoritePosts RPC.
+	PostServiceGetOthersFavoritePostsProcedure = "/schemas.protos.v1.PostService/GetOthersFavoritePosts"
+	// PostServiceGetUsersFavoritedPostProcedure is the fully-qualified name of the PostService's
+	// GetUsersFavoritedPost RPC.
+	PostServiceGetUsersFavoritedPostProcedure = "/schemas.protos.v1.PostService/GetUsersFavoritedPost"
 )
 
 // PostServiceClient is a client for the schemas.protos.v1.PostService service.
@@ -60,6 +70,9 @@ type PostServiceClient interface {
 	GetReplies(context.Context, *connect.Request[v1.GetRepliesRequest]) (*connect.Response[v1.GetRepliesResponse], error)
 	CreateFavorite(context.Context, *connect.Request[v1.CreateFavoriteRequest]) (*connect.Response[v1.CreateFavoriteResponse], error)
 	DeleteFavorite(context.Context, *connect.Request[v1.DeleteFavoriteRequest]) (*connect.Response[v1.DeleteFavoriteResponse], error)
+	GetMyFavoritePosts(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.GetPostsResponse], error)
+	GetOthersFavoritePosts(context.Context, *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetPostsResponse], error)
+	GetUsersFavoritedPost(context.Context, *connect.Request[v1.GetPostRequest]) (*connect.Response[v1.GetUsersResponse], error)
 }
 
 // NewPostServiceClient constructs a client for the schemas.protos.v1.PostService service. By
@@ -107,18 +120,36 @@ func NewPostServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			baseURL+PostServiceDeleteFavoriteProcedure,
 			opts...,
 		),
+		getMyFavoritePosts: connect.NewClient[emptypb.Empty, v1.GetPostsResponse](
+			httpClient,
+			baseURL+PostServiceGetMyFavoritePostsProcedure,
+			opts...,
+		),
+		getOthersFavoritePosts: connect.NewClient[v1.GetUserRequest, v1.GetPostsResponse](
+			httpClient,
+			baseURL+PostServiceGetOthersFavoritePostsProcedure,
+			opts...,
+		),
+		getUsersFavoritedPost: connect.NewClient[v1.GetPostRequest, v1.GetUsersResponse](
+			httpClient,
+			baseURL+PostServiceGetUsersFavoritedPostProcedure,
+			opts...,
+		),
 	}
 }
 
 // postServiceClient implements PostServiceClient.
 type postServiceClient struct {
-	createPost     *connect.Client[v1.CreatePostRequest, v1.CreatePostResponse]
-	getPost        *connect.Client[v1.GetPostRequest, v1.GetPostResponse]
-	getPosts       *connect.Client[v1.GetPostsRequest, v1.GetPostsResponse]
-	deletePost     *connect.Client[v1.DeletePostRequest, v1.DeletePostResponse]
-	getReplies     *connect.Client[v1.GetRepliesRequest, v1.GetRepliesResponse]
-	createFavorite *connect.Client[v1.CreateFavoriteRequest, v1.CreateFavoriteResponse]
-	deleteFavorite *connect.Client[v1.DeleteFavoriteRequest, v1.DeleteFavoriteResponse]
+	createPost             *connect.Client[v1.CreatePostRequest, v1.CreatePostResponse]
+	getPost                *connect.Client[v1.GetPostRequest, v1.GetPostResponse]
+	getPosts               *connect.Client[v1.GetPostsRequest, v1.GetPostsResponse]
+	deletePost             *connect.Client[v1.DeletePostRequest, v1.DeletePostResponse]
+	getReplies             *connect.Client[v1.GetRepliesRequest, v1.GetRepliesResponse]
+	createFavorite         *connect.Client[v1.CreateFavoriteRequest, v1.CreateFavoriteResponse]
+	deleteFavorite         *connect.Client[v1.DeleteFavoriteRequest, v1.DeleteFavoriteResponse]
+	getMyFavoritePosts     *connect.Client[emptypb.Empty, v1.GetPostsResponse]
+	getOthersFavoritePosts *connect.Client[v1.GetUserRequest, v1.GetPostsResponse]
+	getUsersFavoritedPost  *connect.Client[v1.GetPostRequest, v1.GetUsersResponse]
 }
 
 // CreatePost calls schemas.protos.v1.PostService.CreatePost.
@@ -156,6 +187,21 @@ func (c *postServiceClient) DeleteFavorite(ctx context.Context, req *connect.Req
 	return c.deleteFavorite.CallUnary(ctx, req)
 }
 
+// GetMyFavoritePosts calls schemas.protos.v1.PostService.GetMyFavoritePosts.
+func (c *postServiceClient) GetMyFavoritePosts(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[v1.GetPostsResponse], error) {
+	return c.getMyFavoritePosts.CallUnary(ctx, req)
+}
+
+// GetOthersFavoritePosts calls schemas.protos.v1.PostService.GetOthersFavoritePosts.
+func (c *postServiceClient) GetOthersFavoritePosts(ctx context.Context, req *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetPostsResponse], error) {
+	return c.getOthersFavoritePosts.CallUnary(ctx, req)
+}
+
+// GetUsersFavoritedPost calls schemas.protos.v1.PostService.GetUsersFavoritedPost.
+func (c *postServiceClient) GetUsersFavoritedPost(ctx context.Context, req *connect.Request[v1.GetPostRequest]) (*connect.Response[v1.GetUsersResponse], error) {
+	return c.getUsersFavoritedPost.CallUnary(ctx, req)
+}
+
 // PostServiceHandler is an implementation of the schemas.protos.v1.PostService service.
 type PostServiceHandler interface {
 	CreatePost(context.Context, *connect.Request[v1.CreatePostRequest]) (*connect.Response[v1.CreatePostResponse], error)
@@ -165,6 +211,9 @@ type PostServiceHandler interface {
 	GetReplies(context.Context, *connect.Request[v1.GetRepliesRequest]) (*connect.Response[v1.GetRepliesResponse], error)
 	CreateFavorite(context.Context, *connect.Request[v1.CreateFavoriteRequest]) (*connect.Response[v1.CreateFavoriteResponse], error)
 	DeleteFavorite(context.Context, *connect.Request[v1.DeleteFavoriteRequest]) (*connect.Response[v1.DeleteFavoriteResponse], error)
+	GetMyFavoritePosts(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.GetPostsResponse], error)
+	GetOthersFavoritePosts(context.Context, *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetPostsResponse], error)
+	GetUsersFavoritedPost(context.Context, *connect.Request[v1.GetPostRequest]) (*connect.Response[v1.GetUsersResponse], error)
 }
 
 // NewPostServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -208,6 +257,21 @@ func NewPostServiceHandler(svc PostServiceHandler, opts ...connect.HandlerOption
 		svc.DeleteFavorite,
 		opts...,
 	)
+	postServiceGetMyFavoritePostsHandler := connect.NewUnaryHandler(
+		PostServiceGetMyFavoritePostsProcedure,
+		svc.GetMyFavoritePosts,
+		opts...,
+	)
+	postServiceGetOthersFavoritePostsHandler := connect.NewUnaryHandler(
+		PostServiceGetOthersFavoritePostsProcedure,
+		svc.GetOthersFavoritePosts,
+		opts...,
+	)
+	postServiceGetUsersFavoritedPostHandler := connect.NewUnaryHandler(
+		PostServiceGetUsersFavoritedPostProcedure,
+		svc.GetUsersFavoritedPost,
+		opts...,
+	)
 	return "/schemas.protos.v1.PostService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case PostServiceCreatePostProcedure:
@@ -224,6 +288,12 @@ func NewPostServiceHandler(svc PostServiceHandler, opts ...connect.HandlerOption
 			postServiceCreateFavoriteHandler.ServeHTTP(w, r)
 		case PostServiceDeleteFavoriteProcedure:
 			postServiceDeleteFavoriteHandler.ServeHTTP(w, r)
+		case PostServiceGetMyFavoritePostsProcedure:
+			postServiceGetMyFavoritePostsHandler.ServeHTTP(w, r)
+		case PostServiceGetOthersFavoritePostsProcedure:
+			postServiceGetOthersFavoritePostsHandler.ServeHTTP(w, r)
+		case PostServiceGetUsersFavoritedPostProcedure:
+			postServiceGetUsersFavoritedPostHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -259,4 +329,16 @@ func (UnimplementedPostServiceHandler) CreateFavorite(context.Context, *connect.
 
 func (UnimplementedPostServiceHandler) DeleteFavorite(context.Context, *connect.Request[v1.DeleteFavoriteRequest]) (*connect.Response[v1.DeleteFavoriteResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("schemas.protos.v1.PostService.DeleteFavorite is not implemented"))
+}
+
+func (UnimplementedPostServiceHandler) GetMyFavoritePosts(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.GetPostsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("schemas.protos.v1.PostService.GetMyFavoritePosts is not implemented"))
+}
+
+func (UnimplementedPostServiceHandler) GetOthersFavoritePosts(context.Context, *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetPostsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("schemas.protos.v1.PostService.GetOthersFavoritePosts is not implemented"))
+}
+
+func (UnimplementedPostServiceHandler) GetUsersFavoritedPost(context.Context, *connect.Request[v1.GetPostRequest]) (*connect.Response[v1.GetUsersResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("schemas.protos.v1.PostService.GetUsersFavoritedPost is not implemented"))
 }
