@@ -66,4 +66,5 @@ jobs:
             --region=$REGION \
             --service-account=cicd-account@$PROJECT_ID.iam.gserviceaccount.com \
             --allow-unauthenticated \
+            --cors-allowed-origins \
             --use-http2
