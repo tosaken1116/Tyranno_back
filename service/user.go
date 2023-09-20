@@ -12,6 +12,10 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
+var (
+	uc = &controller.UserController{}
+)
+
 type UserServer struct{}
 
 func (us *UserServer) CreateUser(ctx context.Context, req *connect.Request[protosv1.CreateUserRequest]) (*connect.Response[protosv1.CreateUserResponse], error) {
@@ -21,7 +25,6 @@ func (us *UserServer) CreateUser(ctx context.Context, req *connect.Request[proto
 	}
 
 	conn := db.GetDB()
-	uc := &controller.UserController{}
 	userResp, err := uc.CreateUser(conn, req.Msg, firebase_id)
 
 	if err != nil {
@@ -38,7 +41,10 @@ func (us *UserServer) UpdateUser(ctx context.Context, req *connect.Request[proto
 	}
 
 	conn := db.GetDB()
-	uc := &controller.UserController{}
+	if _, err := uc.GetUserById(conn, user_id); err != nil {
+		return nil, connect.NewError(connect.CodeUnauthenticated, err)
+	}
+
 	userResp, err := uc.UpdateUser(conn, user_id, req.Msg)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("db error"))
@@ -50,7 +56,10 @@ func (us *UserServer) UpdateUser(ctx context.Context, req *connect.Request[proto
 func (us *UserServer) DeleteUser(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[protosv1.DeleteUserResponse], error) {
 	user_id := ctx.Value(config.USER_ID).(string)
 	conn := db.GetDB()
-	uc := &controller.UserController{}
+	if _, err := uc.GetUserById(conn, user_id); err != nil {
+		return nil, connect.NewError(connect.CodeUnauthenticated, err)
+	}
+
 	resultResp, err := uc.DeleteUser(conn, user_id)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("db error"))
@@ -61,7 +70,6 @@ func (us *UserServer) DeleteUser(ctx context.Context, req *connect.Request[empty
 
 func (us *UserServer) GetUser(ctx context.Context, req *connect.Request[protosv1.GetUserRequest]) (*connect.Response[protosv1.GetUserResponse], error) {
 	conn := db.GetDB()
-	uc := &controller.UserController{}
 	resultResp, err := uc.GetUser(conn, req.Msg.DisplayId)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("db error"))
@@ -73,7 +81,10 @@ func (us *UserServer) GetUser(ctx context.Context, req *connect.Request[protosv1
 func (us *UserServer) GetMe(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[protosv1.GetUserResponse], error) {
 	user_id := ctx.Value(config.USER_ID).(string)
 	conn := db.GetDB()
-	uc := &controller.UserController{}
+	if _, err := uc.GetUserById(conn, user_id); err != nil {
+		return nil, connect.NewError(connect.CodeUnauthenticated, err)
+	}
+
 	resultResp, err := uc.GetUserById(conn, user_id)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("db error"))
@@ -84,7 +95,6 @@ func (us *UserServer) GetMe(ctx context.Context, req *connect.Request[emptypb.Em
 
 func (us *UserServer) GetUsers(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[protosv1.GetUsersResponse], error) {
 	conn := db.GetDB()
-	uc := &controller.UserController{}
 	resultResp, err := uc.GetUsers(conn)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("db error"))
@@ -99,7 +109,6 @@ func (us *UserServer) CheckDisplayName(ctx context.Context, req *connect.Request
 	}
 
 	conn := db.GetDB()
-	uc := &controller.UserController{}
 	resultResp, err := uc.CheckDisplayId(conn, req.Msg.CheckText)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("db error"))

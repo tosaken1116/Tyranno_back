@@ -28,6 +28,10 @@ func (ps *PostServer) CreatePost(ctx context.Context, req *connect.Request[proto
 	}
 
 	conn := db.GetDB()
+	if _, err := uc.GetUserById(conn, user_id); err != nil {
+		return nil, connect.NewError(connect.CodeUnauthenticated, err)
+	}
+
 	resp, err := pc.CreatePost(conn, req.Msg, user_id)
 	if err != nil {
 		log.Println(err)

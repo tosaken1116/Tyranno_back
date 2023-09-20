@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"nnyd-back/config"
-	"nnyd-back/controller"
 	"nnyd-back/db"
 	"nnyd-back/pb/schemas/protos/v1/protosv1connect"
 	"nnyd-back/service"
@@ -74,11 +73,6 @@ func newInterCeptors() connect.Option {
 
 				if time.Now().Unix() > exp {
 					return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("token is expired"))
-				}
-				conn := db.GetDB()
-				uc := &controller.UserController{}
-				if _, err := uc.GetUserById(conn, user_id); err != nil {
-					return nil, connect.NewError(connect.CodeUnauthenticated, err)
 				}
 				ctx = context.WithValue(ctx, config.USER_ID, user_id)
 			default:
