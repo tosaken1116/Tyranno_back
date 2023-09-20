@@ -32,6 +32,10 @@ func (pc *PostController) CreatePost(conn *gorm.DB, msg *protosv1.CreatePostRequ
 		if err := conn.First(&reply, "id = ?", msg.ReplyAt).Error; err != nil {
 			reply.ReplyNumber = reply.ReplyNumber + 1
 		}
+		if err := conn.Save(&reply).Error; err != nil {
+			log.Println(err)
+			return nil, err
+		}
 	}
 
 	nowTime := time.Now()
