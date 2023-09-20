@@ -32,6 +32,11 @@ jobs:
           echo POSTGRES_DB=${{ secrets.POSTGRES_DB }} >> .env
           echo APP_NAME=nnyd >> .env
 
+      - name: Create nnyd.json
+        run: |
+          touch nnyd.json
+          echo ${{ secrets.NNYD_JSON }} >> nnyd.json
+
       - id: 'auth'
         name: 'Authenticate to Google Cloud'
         uses: 'google-github-actions/auth@v1'

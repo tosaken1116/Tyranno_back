@@ -4,7 +4,15 @@ import (
 	"log"
 	"os"
 
+	"firebase.google.com/go/auth"
 	"github.com/joho/godotenv"
+)
+
+type ContextValueKey string
+
+const (
+	FIREBASE_ID = ContextValueKey("firebase_id")
+	USER_ID     = ContextValueKey("user_id")
 )
 
 var (
@@ -15,6 +23,9 @@ var (
 	ENV               string
 	PORT              string
 	APP_NAME          string
+	JST_SECRET_KEY    string
+
+	client *auth.Client
 )
 
 func LoadConfig() {
@@ -28,4 +39,5 @@ func LoadConfig() {
 	ENV = os.Getenv("ENV")
 	PORT = os.Getenv("PORT")
 	APP_NAME = os.Getenv("APP_NAME")
+	JST_SECRET_KEY = os.Getenv("JST_SECRET_KEY")
 }
