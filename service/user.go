@@ -31,7 +31,7 @@ func (us *UserServer) CreateUser(ctx context.Context, req *connect.Request[proto
 	userResp, err := uc.CreateUser(conn, req.Msg, firebase_id)
 
 	if err != nil {
-		return nil, err
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
 	return connect.NewResponse(userResp), nil
@@ -46,7 +46,7 @@ func (us *UserServer) Signin(ctx context.Context, req *connect.Request[emptypb.E
 	uc := &controller.UserController{}
 	user_id, err := uc.CheckVerifyTotp(conn, firebase_id)
 	if err != nil {
-		return nil, err
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
 	claims := jwt.MapClaims{
@@ -58,7 +58,7 @@ func (us *UserServer) Signin(ctx context.Context, req *connect.Request[emptypb.E
 
 	accessToken, err := token.SignedString([]byte(config.JST_SECRET_KEY))
 	if err != nil {
-		return nil, err
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
 	resp := &protosv1.SigninResponse{

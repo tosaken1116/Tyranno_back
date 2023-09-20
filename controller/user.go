@@ -7,7 +7,6 @@ import (
 	"nnyd-back/db"
 	protosv1 "nnyd-back/pb/schemas/protos/v1"
 
-	"connectrpc.com/connect"
 	"gorm.io/gorm"
 )
 
@@ -22,9 +21,8 @@ func (uc *UserController) CreateUser(conn *gorm.DB, msg *protosv1.CreateUserRequ
 	}
 
 	if err := conn.Create(&u).Error; err != nil {
-		resp := connect.NewError(connect.CodeInternal, err)
 		log.Println(err)
-		return nil, resp
+		return nil, err
 	}
 
 	userResp := &protosv1.CreateUserResponse{
@@ -38,7 +36,7 @@ func (uc *UserController) UpdateUser(conn *gorm.DB, id string, msg *protosv1.Upd
 
 	if err := conn.First(&u, "id = ?", id).Error; err != nil {
 		log.Println(err)
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, err
 	}
 
 	u.DisplayId = msg.DisplayId
@@ -47,7 +45,7 @@ func (uc *UserController) UpdateUser(conn *gorm.DB, id string, msg *protosv1.Upd
 
 	if err := conn.Save(&u).Error; err != nil {
 		log.Println(err)
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, err
 	}
 
 	userResp := &protosv1.UpdateUserResponse{
@@ -61,12 +59,12 @@ func (uc *UserController) DeleteUser(conn *gorm.DB, id string) (*protosv1.Delete
 
 	if err := conn.First(&u, "id = ?", id).Error; err != nil {
 		log.Println(err)
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, err
 	}
 
 	if err := conn.Delete(&u).Error; err != nil {
 		log.Println(err)
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, err
 	}
 
 	return &protosv1.DeleteUserResponse{
@@ -84,7 +82,7 @@ func (uc *UserController) CheckDisplayId(conn *gorm.DB, display_id string) (*pro
 			}, nil
 		} else {
 			log.Println(err)
-			return nil, connect.NewError(connect.CodeInternal, err)
+			return nil, err
 		}
 	}
 
@@ -101,7 +99,7 @@ func (uc *UserController) GetUser(conn *gorm.DB, display_id string) (*protosv1.G
 			return &protosv1.GetUserResponse{User: nil}, nil
 		} else {
 			log.Println(err)
-			return nil, connect.NewError(connect.CodeInternal, err)
+			return nil, err
 		}
 	}
 
@@ -119,7 +117,7 @@ func (uc *UserController) GetUsers(conn *gorm.DB) (*protosv1.GetUsersResponse, e
 			return &protosv1.GetUsersResponse{Users: pu}, nil
 		} else {
 			log.Println(err)
-			return nil, connect.NewError(connect.CodeInternal, err)
+			return nil, err
 		}
 	}
 
@@ -137,15 +135,15 @@ func (uc *UserController) CheckVerifyTotp(conn *gorm.DB, firebase_id string) (st
 
 	if err := conn.First(&u, "firebase_id = ?", firebase_id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return "", connect.NewError(connect.CodeNotFound, fmt.Errorf("user having this firebase_id is not found"))
+			return "", fmt.Errorf("user having this firebase_id is not found")
 		} else {
 			log.Println(err)
-			return "", connect.NewError(connect.CodeInternal, err)
+			return "", err
 		}
 	}
 
 	if !u.OtpVerified {
-		return "", connect.NewError(connect.CodePermissionDenied, fmt.Errorf("totp check failed"))
+		return "", fmt.Errorf("totp check failed")
 	}
 
 	return u.ID.String(), nil
