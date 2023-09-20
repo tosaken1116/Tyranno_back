@@ -8,6 +8,7 @@ import (
 	"nnyd-back/db"
 	"nnyd-back/pb/schemas/protos/v1/protosv1connect"
 	"nnyd-back/service"
+	"nnyd-back/utils"
 	"strings"
 	"time"
 
@@ -48,7 +49,7 @@ func newInterCeptors() connect.Option {
 			token := authArray[1]
 			switch authProvider {
 			case "firebase":
-				client := config.GetFirebaseAuthClient()
+				client := utils.GetFirebaseAuthClient()
 				userInfo, err := client.VerifyIDToken(ctx, token)
 				if err != nil {
 					return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed verifying firebase token"))
@@ -85,7 +86,7 @@ func newInterCeptors() connect.Option {
 
 func main() {
 	config.LoadConfig()
-	config.InitFirebaseAuthClient()
+	utils.InitFirebaseAuthClient()
 
 	db.Init()
 	defer db.Close()

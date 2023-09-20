@@ -1,14 +1,11 @@
 package config
 
 import (
-	"context"
 	"log"
 	"os"
 
-	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
 	"github.com/joho/godotenv"
-	"google.golang.org/api/option"
 )
 
 type ContextValueKey string
@@ -43,20 +40,4 @@ func LoadConfig() {
 	PORT = os.Getenv("PORT")
 	APP_NAME = os.Getenv("APP_NAME")
 	JST_SECRET_KEY = os.Getenv("JST_SECRET_KEY")
-}
-
-func InitFirebaseAuthClient() {
-	opt := option.WithCredentialsFile("nnyd.json")
-	app, err := firebase.NewApp(context.Background(), nil, opt)
-	if err != nil {
-		log.Fatal("failed load firebase setting json")
-	}
-	client, err = app.Auth(context.Background())
-	if err != nil {
-		log.Fatal("failed get client")
-	}
-}
-
-func GetFirebaseAuthClient() *auth.Client {
-	return client
 }
