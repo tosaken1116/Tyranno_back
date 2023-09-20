@@ -19,7 +19,7 @@ type UserServer struct{}
 func (us *UserServer) CreateUser(ctx context.Context, req *connect.Request[protosv1.CreateUserRequest]) (*connect.Response[protosv1.CreateUserResponse], error) {
 	firebase_id := ctx.Value(config.FIREBASE_ID).(string)
 	if firebase_id == "" {
-		return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("verifying failed"))
+		return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("verifying failed"))
 	}
 
 	if req.Msg.DisplayId == "" || req.Msg.Name == "" || req.Msg.Icon == "" {
@@ -40,7 +40,7 @@ func (us *UserServer) CreateUser(ctx context.Context, req *connect.Request[proto
 func (us *UserServer) Signin(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[protosv1.SigninResponse], error) {
 	firebase_id := ctx.Value(config.FIREBASE_ID).(string)
 	if firebase_id == "" {
-		return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("verifying failed"))
+		return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("verifying failed"))
 	}
 	conn := db.GetDB()
 	uc := &controller.UserController{}
@@ -70,7 +70,7 @@ func (us *UserServer) Signin(ctx context.Context, req *connect.Request[emptypb.E
 func (us *UserServer) UpdateUser(ctx context.Context, req *connect.Request[protosv1.UpdateUserRequest]) (*connect.Response[protosv1.UpdateUserResponse], error) {
 	user_id := ctx.Value(config.USER_ID).(string)
 	if user_id == "" {
-		return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("verifying failed"))
+		return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("verifying failed"))
 	}
 
 	if req.Msg.DisplayId == "" || req.Msg.Name == "" {
@@ -90,7 +90,7 @@ func (us *UserServer) UpdateUser(ctx context.Context, req *connect.Request[proto
 func (us *UserServer) DeleteUser(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[protosv1.DeleteUserResponse], error) {
 	user_id := ctx.Value(config.USER_ID).(string)
 	if user_id == "" {
-		return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("verifying failed"))
+		return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("verifying failed"))
 	}
 
 	conn := db.GetDB()
