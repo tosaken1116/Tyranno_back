@@ -37,8 +37,10 @@ func newServeMuxWithReflection() *http.ServeMux {
 func newInterCeptors() connect.Option {
 	interceptor := func(next connect.UnaryFunc) connect.UnaryFunc {
 		return connect.UnaryFunc(func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
-			authProvider := req.Header().Get("AuthProvider")
 			auth := req.Header().Get("Authorization")
+			if auth == "" {
+				return next(ctx, req)
+			}
 			authArray := strings.Split(auth, " ")
 			if len(authArray) < 2 {
 				return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("please set valid Authorization Header"))
@@ -47,6 +49,7 @@ func newInterCeptors() connect.Option {
 				return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("please set valid Authorization Header"))
 			}
 			token := authArray[1]
+			authProvider := req.Header().Get("AuthProvider")
 			switch authProvider {
 			case "firebase":
 				client := utils.GetFirebaseAuthClient()
