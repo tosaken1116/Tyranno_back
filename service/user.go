@@ -153,33 +153,57 @@ func (us *UserServer) UnfollowUser(ctx context.Context, req *connect.Request[pro
 }
 
 func (us *UserServer) GetFollowByID(ctx context.Context, req *connect.Request[protosv1.GetUserRequest]) (*connect.Response[protosv1.GetUsersResponse], error) {
-	// TODO: mock
-	resp := &protosv1.GetUsersResponse{
-		Users: []*protosv1.User{},
+	user_id := req.Msg.DisplayId
+	conn := db.GetDB()
+	if _, err := uc.GetUserById(conn, user_id); err != nil {
+		return nil, connect.NewError(connect.CodeUnauthenticated, err)
+	}
+
+	resp, err := foc.GetFollowByID(conn, user_id)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 	return connect.NewResponse(resp), nil
 }
 
 func (us *UserServer) GetFollowerByID(ctx context.Context, req *connect.Request[protosv1.GetUserRequest]) (*connect.Response[protosv1.GetUsersResponse], error) {
-	// TODO: mock
-	resp := &protosv1.GetUsersResponse{
-		Users: []*protosv1.User{},
+	user_id := req.Msg.DisplayId
+	conn := db.GetDB()
+	if _, err := uc.GetUserById(conn, user_id); err != nil {
+		return nil, connect.NewError(connect.CodeUnauthenticated, err)
+	}
+
+	resp, err := foc.GetFollowerByID(conn, user_id)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 	return connect.NewResponse(resp), nil
 }
 
-func (us *UserServer) GetMyFollow(ctx context.Context, req *connect.Request[protosv1.GetUserRequest]) (*connect.Response[protosv1.GetUsersResponse], error) {
-	// TODO: mock
-	resp := &protosv1.GetUsersResponse{
-		Users: []*protosv1.User{},
+func (us *UserServer) GetMyFollow(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[protosv1.GetUsersResponse], error) {
+	user_id := ctx.Value(config.USER_ID).(string)
+	conn := db.GetDB()
+	if _, err := uc.GetUserById(conn, user_id); err != nil {
+		return nil, connect.NewError(connect.CodeUnauthenticated, err)
+	}
+
+	resp, err := foc.GetFollowByID(conn, user_id)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 	return connect.NewResponse(resp), nil
 }
 
-func (us *UserServer) GetMyFollower(ctx context.Context, req *connect.Request[protosv1.GetUserRequest]) (*connect.Response[protosv1.GetUsersResponse], error) {
-	// TODO: mock
-	resp := &protosv1.GetUsersResponse{
-		Users: []*protosv1.User{},
+func (us *UserServer) GetMyFollower(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[protosv1.GetUsersResponse], error) {
+	user_id := ctx.Value(config.USER_ID).(string)
+	conn := db.GetDB()
+	if _, err := uc.GetUserById(conn, user_id); err != nil {
+		return nil, connect.NewError(connect.CodeUnauthenticated, err)
+	}
+
+	resp, err := foc.GetFollowerByID(conn, user_id)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 	return connect.NewResponse(resp), nil
 }

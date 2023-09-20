@@ -115,3 +115,35 @@ func (foc *FollowController) UnfollowUser(conn *gorm.DB, from_user_id string, to
 		User: fu.ToProtosModel(),
 	}, nil
 }
+
+func (foc *FollowController) GetFollowByID(conn *gorm.DB, user_id string) (*protosv1.GetUsersResponse, error) {
+	u := []db.Follows{}
+	if err := conn.Find(u, "from_user_id = ?", user_id).Error; err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	users := []*protosv1.User{}
+	for i := 0; i < len(u); i++ {
+		users = append(users, u[i].ToUser.ToProtosModel())
+	}
+
+	return &protosv1.GetUsersResponse{
+		Users: users,
+	}, nil
+}
+
+func (foc *FollowController) GetFollowerByID(conn *gorm.DB, user_id string) (*protosv1.GetUsersResponse, error) {
+	u := []db.Follows{}
+	if err := conn.Find(u, "to_user_id = ?", user_id).Error; err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	users := []*protosv1.User{}
+	for i := 0; i < len(u); i++ {
+		users = append(users, u[i].FromUser.ToProtosModel())
+	}
+
+	return &protosv1.GetUsersResponse{
+		Users: users,
+	}, nil
+}
