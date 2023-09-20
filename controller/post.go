@@ -86,7 +86,7 @@ func (pc *PostController) GetPostByID(conn *gorm.DB, post_id int64) (*protosv1.G
 
 func (pc *PostController) GetPosts(conn *gorm.DB) (*protosv1.GetPostsResponse, error) {
 	p := []db.Posts{}
-	if err := conn.Find(&p, "is_delete = false").Error; err != nil {
+	if err := conn.Order("published_at desc").Find(&p, "is_delete = false").Error; err != nil {
 		log.Println(err)
 		return nil, err
 	}
