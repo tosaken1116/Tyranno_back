@@ -10,6 +10,7 @@ import (
 	protosv1 "nnyd-back/pb/schemas/protos/v1"
 
 	"connectrpc.com/connect"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 var (
@@ -130,6 +131,54 @@ func (ps *PostServer) DeleteFavorite(ctx context.Context, req *connect.Request[p
 	}
 
 	resp, err := fac.DeleteFavorite(conn, user_id, req.Msg.FavoriteAt)
+	if err != nil {
+		log.Println(err)
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+	return connect.NewResponse(resp), nil
+}
+
+func (ps *PostServer) GetMyFavoritePosts(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[protosv1.GetPostsResponse], error) {
+	user_id := ctx.Value(config.USER_ID).(string)
+	conn := db.GetDB()
+	if _, err := uc.GetUserById(conn, user_id); err != nil {
+		return nil, connect.NewError(connect.CodeUnauthenticated, err)
+	}
+
+	resp, err := fac.GetFavoritePosts(conn, user_id)
+	if err != nil {
+		log.Println(err)
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+	return connect.NewResponse(resp), nil
+}
+
+func (ps *PostServer) GetOthersFavoritePosts(ctx context.Context, req *connect.Request[protosv1.GetUserRequest]) (*connect.Response[protosv1.GetPostsResponse], error) {
+	conn := db.GetDB()
+	user_id, err := uc.GetIdFromDisplayId(conn, req.Msg.DisplayId)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeUnauthenticated, err)
+	}
+
+	resp, err := fac.GetFavoritePosts(conn, user_id)
+	if err != nil {
+		log.Println(err)
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+	return connect.NewResponse(resp), nil
+}
+
+func (ps *PostServer) GetUsersFavoritedPost(ctx context.Context, req *connect.Request[protosv1.GetPostRequest]) (*connect.Response[protosv1.GetUsersResponse], error) {
+	user_id := ctx.Value(config.USER_ID).(string)
+	conn := db.GetDB()
+	if _, err := uc.GetUserById(conn, user_id); err != nil {
+		return nil, connect.NewError(connect.CodeUnauthenticated, err)
+	}
+	if _, err := pc.GetPostByID(conn, req.Msg.Id); err != nil {
+		return nil, connect.NewError(connect.CodeNotFound, err)
+	}
+
+	resp, err := fac.GetFavoritingUser(conn, req.Msg.Id)
 	if err != nil {
 		log.Println(err)
 		return nil, connect.NewError(connect.CodeInternal, err)

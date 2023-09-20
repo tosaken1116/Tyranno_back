@@ -85,3 +85,43 @@ func (fac *FavoriteController) DeleteFavorite(conn *gorm.DB, user_id string, pos
 		Status: true,
 	}, nil
 }
+
+func (fac *FavoriteController) GetFavoritePosts(conn *gorm.DB, user_id string) (*protosv1.GetPostsResponse, error) {
+	fa := []db.Favorites{}
+	if err := conn.First(&fa, "user_id = ?", user_id).Error; err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	posts := []*protosv1.Post{}
+	for i := 0; i < len(fa); i++ {
+		if err := conn.Model(&fa[i]).Association("Post").Find(&fa[i].Post); err != nil {
+			log.Println(err)
+			return nil, err
+		}
+		posts = append(posts, fa[i].Post.ToProtosModel())
+	}
+
+	return &protosv1.GetPostsResponse{
+		Posts: posts,
+	}, nil
+}
+
+func (fac *FavoriteController) GetFavoritingUser(conn *gorm.DB, post_id int64) (*protosv1.GetUsersResponse, error) {
+	fa := []db.Favorites{}
+	if err := conn.First(&fa, "post_id = ?", post_id).Error; err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	users := []*protosv1.User{}
+	for i := 0; i < len(fa); i++ {
+		if err := conn.Model(&fa[i]).Association("User").Find(&fa[i].User); err != nil {
+			log.Println(err)
+			return nil, err
+		}
+		users = append(users, fa[i].User.ToProtosModel())
+	}
+
+	return &protosv1.GetUsersResponse{
+		Users: users,
+	}, nil
+}
