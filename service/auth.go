@@ -15,6 +15,10 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
+var (
+	ac = &controller.AuthController{}
+)
+
 type AuthServer struct{}
 
 func (as *AuthServer) SignIn(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[protosv1.SignInResponse], error) {
@@ -23,7 +27,6 @@ func (as *AuthServer) SignIn(ctx context.Context, req *connect.Request[emptypb.E
 		return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("verifying failed"))
 	}
 	conn := db.GetDB()
-	ac := &controller.AuthController{}
 	user_id, err := ac.CheckVerifyTotp(conn, firebase_id)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
@@ -48,16 +51,20 @@ func (as *AuthServer) SignIn(ctx context.Context, req *connect.Request[emptypb.E
 }
 
 func (as *AuthServer) SignOut(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[protosv1.SignOutResponse], error) {
-	// TODOL mock
-	resp := &protosv1.SignOutResponse{
-		Status: true,
+	user_id := ctx.Value(config.USER_ID).(string)
+	conn := db.GetDB()
+	if _, err := uc.GetUserById(conn, user_id); err != nil {
+		return nil, connect.NewError(connect.CodeUnauthenticated, err)
+	}
+	resp, err := ac.SignOut(conn, user_id)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 	return connect.NewResponse(resp), nil
 }
 
 func (as *AuthServer) GenerateTotpKey(ctx context.Context, req *connect.Request[protosv1.GenerateTotpKeyRequest]) (*connect.Response[protosv1.GenerateTotpKeyResponse], error) {
 	conn := db.GetDB()
-	ac := &controller.AuthController{}
 	resp, err := ac.GenerateTotpKeyController(conn, req.Msg)
 	if err != nil {
 		log.Println(err)
@@ -68,7 +75,6 @@ func (as *AuthServer) GenerateTotpKey(ctx context.Context, req *connect.Request[
 
 func (as *AuthServer) VerifyTotp(ctx context.Context, req *connect.Request[protosv1.VerifyTotpRequest]) (*connect.Response[protosv1.VerifyTotpResponse], error) {
 	conn := db.GetDB()
-	ac := &controller.AuthController{}
 	resp, err := ac.VerifyTotpController(conn, req.Msg)
 
 	if err != nil {
@@ -81,7 +87,6 @@ func (as *AuthServer) VerifyTotp(ctx context.Context, req *connect.Request[proto
 
 func (as *AuthServer) ValidateTotp(ctx context.Context, req *connect.Request[protosv1.ValidateTotpRequest]) (*connect.Response[protosv1.ValidateTotpResponse], error) {
 	conn := db.GetDB()
-	ac := &controller.AuthController{}
 	log.Println(req.Msg)
 	resp, err := ac.ValidateTotpController(conn, req.Msg)
 
