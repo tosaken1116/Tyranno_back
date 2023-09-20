@@ -55,10 +55,10 @@ func (u *Users) ToProtosModel() *protosv1.User {
 
 type Posts struct {
 	DateTime
-	ID             int64     `gorm:"primaryKey" json:"id"`
+	ID             int32     `gorm:"primaryKey" json:"id"`
 	Text           string    `gorm:"not null" json:"text"`
 	UserID         uuid.UUID `gorm:"type:uuid" json:"user_id"`
-	ReplyAt        *int64    `gorm:"default:null" json:"reply_at"`
+	ReplyAt        *int32    `gorm:"default:null" json:"reply_at"`
 	PublishedAt    time.Time `json:"published_at"`
 	FavoriteNumber int32     `json:"favorite_number"`
 	ReplyNumber    int32     `json:"reply_number"`
