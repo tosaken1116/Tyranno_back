@@ -168,3 +168,20 @@ func (ac *AuthController) CheckVerifyTotp(conn *gorm.DB, firebase_id string) (st
 
 	return u.ID.String(), nil
 }
+
+func (ac *AuthController) SignOut(conn *gorm.DB, user_id string) (*protosv1.SignOutResponse, error) {
+	u := db.Users{}
+	if err := conn.First(&u, "id = ?", user_id).Error; err != nil {
+		return nil, err
+	}
+
+	u.OtpVerified = false
+
+	if err := conn.Save(u).Error; err != nil {
+		return nil, err
+	}
+
+	return &protosv1.SignOutResponse{
+		Status: true,
+	}, nil
+}
