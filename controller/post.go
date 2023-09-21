@@ -192,7 +192,5 @@ func (pc *PostController) GetReplies(conn *gorm.DB, post_id int32, user_id *stri
 		Replies: posts,
 	}
 
-	log.Println(postResponse)
-
 	return postResponse, nil
 }

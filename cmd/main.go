@@ -114,7 +114,6 @@ func main() {
 			http.MethodDelete,
 		},
 		AllowedHeaders:     []string{"*"},
-		AllowCredentials:   true,
 		OptionsPassthrough: true,
 		Debug:              true,
 	})
