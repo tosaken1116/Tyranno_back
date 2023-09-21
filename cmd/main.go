@@ -114,7 +114,7 @@ func main() {
 			http.MethodDelete,
 		},
 		AllowedHeaders:   []string{"*"},
-		AllowCredentials: true,
+		AllowCredentials: false,
 	})
 	http.ListenAndServe(portStr, debugCors.Handler(h2c.NewHandler(mux, &http2.Server{})))
 }
