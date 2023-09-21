@@ -102,5 +102,19 @@ func main() {
 	mux.Handle(protosv1connect.NewAuthServiceHandler(&service.AuthServer{}, interceptor))
 
 	portStr := ":" + config.PORT
-	http.ListenAndServe(portStr, cors.AllowAll().Handler(h2c.NewHandler(mux, &http2.Server{})))
+	debugCors := cors.New(cors.Options{
+		AllowedOrigins: []string{"*"},
+		AllowedMethods: []string{
+			http.MethodOptions,
+			http.MethodHead,
+			http.MethodGet,
+			http.MethodPost,
+			http.MethodPut,
+			http.MethodPatch,
+			http.MethodDelete,
+		},
+		AllowedHeaders:   []string{"*"},
+		AllowCredentials: true,
+	})
+	http.ListenAndServe(portStr, debugCors.Handler(h2c.NewHandler(mux, &http2.Server{})))
 }
