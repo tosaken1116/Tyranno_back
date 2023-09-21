@@ -73,6 +73,9 @@ func (pc *PostController) GetPostByID(conn *gorm.DB, post_id int32, user_id *str
 		log.Println(err)
 		return nil, err
 	}
+	if time.Now().Before(p.PublishedAt) && *user_id != p.UserID.String() {
+		return nil, gorm.ErrRecordNotFound
+	}
 	if err := conn.Model(&p).Association("User").Find(&p.User); err != nil {
 		log.Println(err)
 		return nil, err
@@ -99,7 +102,7 @@ func (pc *PostController) GetPostByID(conn *gorm.DB, post_id int32, user_id *str
 
 func (pc *PostController) GetPosts(conn *gorm.DB, user_id *string) (*protosv1.GetPostsResponse, error) {
 	p := []db.Posts{}
-	if err := conn.Order("published_at desc").Find(&p, "is_delete = false").Error; err != nil {
+	if err := conn.Order("published_at desc").Find(&p, "is_delete = false and published_at <= now()").Error; err != nil {
 		log.Println(err)
 		return nil, err
 	}
@@ -154,7 +157,7 @@ func (pc *PostController) DeletePost(conn *gorm.DB, post_id int32) (*protosv1.De
 
 func (pc *PostController) GetReplies(conn *gorm.DB, post_id int32, user_id *string) (*protosv1.GetRepliesResponse, error) {
 	p := []db.Posts{}
-	if err := conn.Find(&p, "reply_at = ? and is_delete = false", post_id).Error; err != nil {
+	if err := conn.Find(&p, "reply_at = ? and is_delete = false and published_at <= now()", post_id).Error; err != nil {
 		log.Println(err)
 		return nil, err
 	}

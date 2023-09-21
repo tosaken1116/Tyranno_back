@@ -103,7 +103,7 @@ func (fac *FavoriteController) GetFavoritePosts(conn *gorm.DB, user_id string, m
 			if user_id == *my_user_id {
 				isFavorited = true
 			} else {
-				if err := conn.First(&db.Favorites{}, "user_id = ? and post_id = ?", my_user_id, fa[i].PostID).Error; err != nil {
+				if err := conn.First(&db.Favorites{}, "user_id = ? and post_id = ? and published_at <= now()", my_user_id, fa[i].PostID).Error; err != nil {
 					if !errors.Is(err, gorm.ErrRecordNotFound) {
 						log.Println(err)
 						return nil, err
