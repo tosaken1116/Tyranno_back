@@ -22,12 +22,13 @@ var (
 type AuthServer struct{}
 
 func (as *AuthServer) SignIn(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[protosv1.SignInResponse], error) {
-	firebase_id := ctx.Value(config.FIREBASE_ID).(string)
-	if firebase_id == "" {
+	firebase_id := ctx.Value(config.FIREBASE_ID)
+	if firebase_id == nil {
 		return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("verifying failed"))
 	}
+	firebase_id_str := firebase_id.(string)
 	conn := db.GetDB()
-	user_id, err := ac.CheckVerifyTotp(conn, firebase_id)
+	user_id, err := ac.CheckVerifyTotp(conn, firebase_id_str)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -51,12 +52,16 @@ func (as *AuthServer) SignIn(ctx context.Context, req *connect.Request[emptypb.E
 }
 
 func (as *AuthServer) SignOut(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[protosv1.SignOutResponse], error) {
-	user_id := ctx.Value(config.USER_ID).(string)
+	user_id := ctx.Value(config.USER_ID)
+	if user_id == nil {
+		return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("missing credential"))
+	}
+	user_id_str := user_id.(string)
 	conn := db.GetDB()
-	if _, err := uc.GetUserById(conn, user_id); err != nil {
+	if _, err := uc.GetUserById(conn, user_id_str); err != nil {
 		return nil, connect.NewError(connect.CodeUnauthenticated, err)
 	}
-	resp, err := ac.SignOut(conn, user_id)
+	resp, err := ac.SignOut(conn, user_id_str)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
