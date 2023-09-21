@@ -4,6 +4,8 @@
     "connectrpc",
     "emptypb",
     "extendee",
+    "Favorited",
+    "Favoriting",
     "gorm",
     "grpcreflect",
     "gzipped",

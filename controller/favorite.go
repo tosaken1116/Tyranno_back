@@ -86,7 +86,7 @@ func (fac *FavoriteController) DeleteFavorite(conn *gorm.DB, user_id string, pos
 	}, nil
 }
 
-func (fac *FavoriteController) GetFavoritePosts(conn *gorm.DB, user_id string) (*protosv1.GetPostsResponse, error) {
+func (fac *FavoriteController) GetFavoritePosts(conn *gorm.DB, user_id string, my_user_id *string) (*protosv1.GetPostsResponse, error) {
 	fa := []db.Favorites{}
 	if err := conn.First(&fa, "user_id = ?", user_id).Error; err != nil {
 		log.Println(err)
@@ -98,7 +98,22 @@ func (fac *FavoriteController) GetFavoritePosts(conn *gorm.DB, user_id string) (
 			log.Println(err)
 			return nil, err
 		}
-		posts = append(posts, fa[i].Post.ToProtosModel())
+		isFavorited := false
+		if my_user_id != nil {
+			if user_id == *my_user_id {
+				isFavorited = true
+			} else {
+				if err := conn.First(&db.Favorites{}, "user_id = ? and post_id = ?", my_user_id, fa[i].PostID).Error; err != nil {
+					if !errors.Is(err, gorm.ErrRecordNotFound) {
+						log.Println(err)
+						return nil, err
+					}
+				} else {
+					isFavorited = true
+				}
+			}
+		}
+		posts = append(posts, fa[i].Post.ToProtosModel(isFavorited))
 	}
 
 	return &protosv1.GetPostsResponse{
